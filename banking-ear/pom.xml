@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.ashanhimantha.ee</groupId>
+        <artifactId>enterprise-banking-platform</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <artifactId>banking-ear</artifactId>
+    <packaging>ear</packaging>
+
+    <dependencies>
+        <!-- Include the EJB module we created -->
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-accounts</artifactId>
+            <version>1.0</version>
+            <type>ejb</type> <!-- Tell Maven this is an EJB JAR -->
+        </dependency>
+
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>8.0.33</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-ear-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <version>10</version> <!-- Jakarta EE version -->
+                    <defaultLibBundleDir>lib</defaultLibBundleDir>
+                     <modules>
+                        <!-- Explicitly define the EJB module -->
+                         <ejbModule>
+                             <groupId>com.ashanhimantha.ee</groupId>
+                             <artifactId>banking-accounts</artifactId>
+                             <bundleFileName>banking-accounts.jar</bundleFileName>
+                         </ejbModule>
+
+                         <warModule>
+                             <groupId>com.ashanhimantha.ee</groupId>
+                             <artifactId>banking-web</artifactId>
+                             <contextRoot>/banking-api</contextRoot>
+                         </warModule>
+                    </modules>
+
+                    <security>
+                        <security-role>
+                            <role-name>ADMIN</role-name>
+                        </security-role>
+                        <security-role>
+                            <role-name>EMPLOYEE</role-name>
+                        </security-role>
+                        <security-role>
+                            <role-name>CUSTOMER</role-name>
+                        </security-role>
+                    </security>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+</project>

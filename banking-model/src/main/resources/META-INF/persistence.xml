@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             version="3.0"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
+
+    <persistence-unit name="bankingPU" transaction-type="JTA">
+        <!--
+            The JTA (Java Transaction API) data source will be configured
+            on the Payara server. This is the standard for EJB.
+        -->
+        <jta-data-source>jdbc/bankingDB</jta-data-source>
+
+        <properties>
+            <!-- Use the standard property for initial creation if needed, or set to "none" -->
+            <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
+
+            <!-- Add the Hibernate-specific property for updates -->
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
+
+            <!-- The rest of the properties remain the same -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect"/>
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+        </properties>
+    </persistence-unit>
+</persistence>
