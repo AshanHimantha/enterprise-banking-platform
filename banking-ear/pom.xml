@@ -21,6 +21,22 @@
             <type>ejb</type> <!-- Tell Maven this is an EJB JAR -->
         </dependency>
 
+        <!-- Add the banking-auth module as a dependency -->
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-auth</artifactId>
+            <version>1.0</version>
+            <type>ejb</type>
+        </dependency>
+
+        <!-- Add the banking-web module as a dependency -->
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-web</artifactId>
+            <version>1.0</version>
+            <type>war</type>
+        </dependency>
+
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
@@ -46,11 +62,17 @@
                              <bundleFileName>banking-accounts.jar</bundleFileName>
                          </ejbModule>
 
-                         <warModule>
+                         <ejbModule>
+                             <groupId>com.ashanhimantha.ee</groupId>
+                             <artifactId>banking-auth</artifactId>
+                             <bundleFileName>banking-auth.jar</bundleFileName>
+                         </ejbModule>
+
+                         <webModule>
                              <groupId>com.ashanhimantha.ee</groupId>
                              <artifactId>banking-web</artifactId>
                              <contextRoot>/banking-api</contextRoot>
-                         </warModule>
+                         </webModule>
                     </modules>
 
                     <security>

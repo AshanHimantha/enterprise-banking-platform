@@ -10,6 +10,45 @@
     </parent>
 
     <artifactId>banking-auth</artifactId>
+    <packaging>ejb</packaging>
+
+    <dependencies>
+        <!-- Jakarta EE for EJB annotations -->
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+            <version>10.0.0</version>
+        </dependency>
+
+        <!-- We need the model module to use the User class -->
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-model</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <!-- JJWT Dependencies for creating and parsing JWTs -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.12.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-gson</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
+
+    </dependencies>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
