@@ -15,9 +15,7 @@ public class UserRole implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // We store the username directly as a string.
-    // This de-normalizes the data slightly but is very common and efficient
-    // for security queries, as it avoids an extra join to the app_user table.
+
     @Column(name = "username", nullable = false)
     private String username;
 

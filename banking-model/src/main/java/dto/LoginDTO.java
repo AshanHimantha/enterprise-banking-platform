@@ -1,4 +1,4 @@
-package rest.dto;
+package dto;
 
 public class LoginDTO {
     private String username;

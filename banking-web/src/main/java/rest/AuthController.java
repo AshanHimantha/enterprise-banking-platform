@@ -2,20 +2,23 @@ package rest;
 
 
 import auth.service.AuthService;
+import dto.RegisterDTO;
 import entity.User;
 import jakarta.ejb.EJB;
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import rest.dto.LoginDTO;
+import dto.LoginDTO;
 import java.util.Collections;
 import java.util.Optional;
 
 
 // Base path for all authentication-related endpoints
+@RequestScoped
 @Path("/auth")
 public class AuthController {
 
@@ -26,16 +29,16 @@ public class AuthController {
     @Path("/register")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response register(User user) {
+    public Response register(RegisterDTO registerDTO) { // Use the DTO
         try {
-            // For now, all new users are registered as CUSTOMER
-            authService.registerUser(user, "CUSTOMER");
+            authService.registerUser(registerDTO, "CUSTOMER");
             return Response.status(Response.Status.CREATED)
                     .entity(Collections.singletonMap("message", "User registered successfully"))
                     .build();
         } catch (Exception e) {
+            // This could be a unique constraint violation (e.g., username already exists)
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(Collections.singletonMap("error", e.getMessage()))
+                    .entity(Collections.singletonMap("error", "Registration failed: " + e.getMessage()))
                     .build();
         }
     }

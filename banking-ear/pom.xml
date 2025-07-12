@@ -71,7 +71,7 @@
                          <webModule>
                              <groupId>com.ashanhimantha.ee</groupId>
                              <artifactId>banking-web</artifactId>
-                             <contextRoot>/banking-api</contextRoot>
+                             <contextRoot>/bank</contextRoot>
                          </webModule>
                     </modules>
 

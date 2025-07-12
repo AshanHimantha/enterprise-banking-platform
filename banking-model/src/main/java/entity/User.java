@@ -20,6 +20,7 @@ public class User implements Serializable {
     @Column(nullable = false)
     private String lastName;
 
+
     @Column(unique = true, nullable = false)
     private String email;
     @Column(unique = true, nullable = false)
@@ -77,6 +78,8 @@ public class User implements Serializable {
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
+
+
 
     public String getEmail() {
         return email;

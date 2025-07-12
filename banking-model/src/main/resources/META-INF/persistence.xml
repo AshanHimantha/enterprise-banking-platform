@@ -6,15 +6,8 @@
 
     <persistence-unit name="bankingPU" transaction-type="JTA">
 
-        <!-- This JNDI name is correct and MUST match what you configured in Payara. -->
         <jta-data-source>jdbc/bankingDB</jta-data-source>
 
-        <!--
-            This setting tells the container to automatically find all your @Entity classes.
-            It is much safer than listing them manually with <class> tags.
-            This prevents typos and means you don't have to update this file every
-            time you add a new entity.
-        -->
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
 
         <properties>

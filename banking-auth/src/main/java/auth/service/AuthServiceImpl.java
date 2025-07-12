@@ -1,9 +1,11 @@
 package auth.service;
 
-
 import auth.util.TokenProvider;
+import dto.RegisterDTO;
 import entity.User;
 import entity.UserRole;
+import enums.AccountLevel;
+import enums.KycStatus;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -24,20 +26,198 @@ public class AuthServiceImpl implements AuthService {
     @Inject
     private TokenProvider tokenProvider;
 
+    // The method signature is now corrected to use RegisterDTO
     @Override
-    public void registerUser(User user, String role) {
-        // Hash password and passcode before saving
-        user.setPassword(hashPassword(user.getPassword()));
-        user.setPasscode(hashPassword(user.getPasscode()));
+    public void registerUser(RegisterDTO registerDTO, String role) {
+        // 1. Validate input - Basic null checks
+        if (registerDTO == null) {
+            throw new IllegalArgumentException("Registration data cannot be null.");
+        }
 
-        // Save the user entity
-        em.persist(user);
+        if (role == null || role.trim().isEmpty()) {
+            throw new IllegalArgumentException("Role cannot be null or empty.");
+        }
 
-        // Create and save the user's role
-        UserRole userRole = new UserRole();
-        userRole.setUsername(user.getUsername());
-        userRole.setRolename(role); // Assign the role (e.g., "CUSTOMER")
-        em.persist(userRole);
+        // Validate required fields
+        validateRequiredFields(registerDTO);
+
+        // Validate field formats
+        validateFieldFormats(registerDTO);
+
+        // Validate business rules
+        validateBusinessRules(registerDTO);
+
+        // Check if username is already taken
+        TypedQuery<Long> query = em.createQuery(
+                "SELECT COUNT(u) FROM User u WHERE u.username = :username", Long.class);
+        query.setParameter("username", registerDTO.getUsername());
+
+        if (query.getSingleResult() > 0) {
+            throw new IllegalArgumentException("This username is already taken.");
+        }
+
+        // Check if email is already taken
+        TypedQuery<Long> emailQuery = em.createQuery(
+                "SELECT COUNT(u) FROM User u WHERE u.email = :email", Long.class);
+        emailQuery.setParameter("email", registerDTO.getEmail());
+
+        if (emailQuery.getSingleResult() > 0) {
+            throw new IllegalArgumentException("This email is already registered.");
+        }
+
+        // Check if phone number is already taken
+        TypedQuery<Long> phoneQuery = em.createQuery(
+                "SELECT COUNT(u) FROM User u WHERE u.phoneNumber = :phone", Long.class);
+        phoneQuery.setParameter("phone", registerDTO.getPhoneNumber());
+
+        if (phoneQuery.getSingleResult() > 0) {
+            throw new IllegalArgumentException("This phone number is already registered.");
+        }
+
+        // Check if the username-role combination already exists
+        TypedQuery<Long> roleQuery = em.createQuery(
+                "SELECT COUNT(ur) FROM UserRole ur WHERE ur.username = :username AND ur.rolename = :role", Long.class);
+        roleQuery.setParameter("username", registerDTO.getUsername());
+        roleQuery.setParameter("role", role);
+
+        if (roleQuery.getSingleResult() > 0) {
+            throw new IllegalArgumentException("User role combination already exists.");
+        }
+
+        // 2. Map DTO to User entity
+        User newUser = new User();
+        newUser.setFirstName(registerDTO.getFirstName().trim());
+        newUser.setLastName(registerDTO.getLastName().trim());
+        newUser.setEmail(registerDTO.getEmail().trim().toLowerCase());
+        newUser.setPhoneNumber(registerDTO.getPhoneNumber().trim());
+        newUser.setUsername(registerDTO.getUsername().trim());
+
+        // 3. Set server-side defaults
+        newUser.setPassword(hashPassword(registerDTO.getPassword()));
+        // For simplicity, we set the initial passcode to be the same as the password.
+        // A real app would have a separate "set passcode" flow.
+        newUser.setPasscode(hashPassword(registerDTO.getPassword()));
+
+        // Your required defaults
+        newUser.setEmailVerified(false);
+        newUser.setKycStatus(KycStatus.PENDING);
+        newUser.setAccountLevel(AccountLevel.BRONZE);
+
+        try {
+            // 4. Persist the new user and their role
+            em.persist(newUser);
+            em.flush(); // Ensure user is persisted before creating role
+
+            UserRole userRole = new UserRole();
+            userRole.setUsername(newUser.getUsername());
+            userRole.setRolename(role);
+            em.persist(userRole);
+        } catch (Exception e) {
+            // Log the error and throw a more user-friendly exception
+            System.err.println("Error registering user " + registerDTO.getUsername() + ": " + e.getMessage());
+            throw new RuntimeException("Registration failed. Please try again.", e);
+        }
+    }
+
+    private void validateRequiredFields(RegisterDTO registerDTO) {
+        if (registerDTO.getFirstName() == null || registerDTO.getFirstName().trim().isEmpty()) {
+            throw new IllegalArgumentException("First name is required.");
+        }
+        if (registerDTO.getLastName() == null || registerDTO.getLastName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Last name is required.");
+        }
+        if (registerDTO.getEmail() == null || registerDTO.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Email is required.");
+        }
+        if (registerDTO.getPhoneNumber() == null || registerDTO.getPhoneNumber().trim().isEmpty()) {
+            throw new IllegalArgumentException("Phone number is required.");
+        }
+        if (registerDTO.getUsername() == null || registerDTO.getUsername().trim().isEmpty()) {
+            throw new IllegalArgumentException("Username is required.");
+        }
+        if (registerDTO.getPassword() == null || registerDTO.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("Password is required.");
+        }
+    }
+
+    private void validateFieldFormats(RegisterDTO registerDTO) {
+        // Email format validation
+        String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+        if (!registerDTO.getEmail().matches(emailRegex)) {
+            throw new IllegalArgumentException("Invalid email format.");
+        }
+
+        // Phone number format validation (assuming international format)
+        String phoneRegex = "^\\+?[1-9]\\d{1,14}$";
+        String cleanPhone = registerDTO.getPhoneNumber().replaceAll("[\\s()-]", "");
+        if (!cleanPhone.matches(phoneRegex)) {
+            throw new IllegalArgumentException("Invalid phone number format. Please use international format (+1234567890).");
+        }
+
+        // Username format validation
+        String usernameRegex = "^[a-zA-Z0-9_]{3,20}$";
+        if (!registerDTO.getUsername().matches(usernameRegex)) {
+            throw new IllegalArgumentException("Username must be 3-20 characters long and contain only letters, numbers, and underscores.");
+        }
+    }
+
+    private void validateBusinessRules(RegisterDTO registerDTO) {
+        // Name length validation
+        if (registerDTO.getFirstName().trim().length() < 2 || registerDTO.getFirstName().trim().length() > 50) {
+            throw new IllegalArgumentException("First name must be between 2 and 50 characters.");
+        }
+        if (registerDTO.getLastName().trim().length() < 2 || registerDTO.getLastName().trim().length() > 50) {
+            throw new IllegalArgumentException("Last name must be between 2 and 50 characters.");
+        }
+
+        // Name should not contain numbers or special characters
+        String nameRegex = "^[a-zA-Z\\s]+$";
+        if (!registerDTO.getFirstName().matches(nameRegex)) {
+            throw new IllegalArgumentException("First name should only contain letters and spaces.");
+        }
+        if (!registerDTO.getLastName().matches(nameRegex)) {
+            throw new IllegalArgumentException("Last name should only contain letters and spaces.");
+        }
+
+        // Email length validation
+        if (registerDTO.getEmail().length() > 100) {
+            throw new IllegalArgumentException("Email address is too long (maximum 100 characters).");
+        }
+
+        // Phone number length validation
+        String cleanPhone = registerDTO.getPhoneNumber().replaceAll("[\\s()-]", "");
+        if (cleanPhone.length() < 10 || cleanPhone.length() > 15) {
+            throw new IllegalArgumentException("Phone number must be between 10 and 15 digits.");
+        }
+
+        // Password strength validation
+        if (!isValidPassword(registerDTO.getPassword())) {
+            throw new IllegalArgumentException("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number.");
+        }
+
+        // Additional password security checks
+        if (registerDTO.getPassword().length() > 128) {
+            throw new IllegalArgumentException("Password is too long (maximum 128 characters).");
+        }
+
+        // Check for common weak passwords
+        String[] weakPasswords = {"password", "123456", "qwerty", "abc123", "password123"};
+        String lowercasePassword = registerDTO.getPassword().toLowerCase();
+        for (String weak : weakPasswords) {
+            if (lowercasePassword.contains(weak)) {
+                throw new IllegalArgumentException("Password contains common weak patterns. Please choose a stronger password.");
+            }
+        }
+    }
+
+    private boolean isValidPassword(String password) {
+        if (password == null || password.length() < 8) {
+            return false;
+        }
+        boolean hasUppercase = !password.equals(password.toLowerCase());
+        boolean hasLowercase = !password.equals(password.toUpperCase());
+        boolean hasNumber = password.matches(".*\\d.*");
+        return hasUppercase && hasLowercase && hasNumber;
     }
 
     @Override
@@ -47,24 +227,20 @@ public class AuthServiceImpl implements AuthService {
 
         try {
             User user = query.getSingleResult();
-            // Check if the provided password, when hashed, matches the stored hash
             if (user.getPassword().equals(hashPassword(password))) {
-                // Passwords match, generate and return a token
                 return Optional.of(tokenProvider.createToken(user));
             }
         } catch (Exception e) {
-            // User not found or other error
             System.err.println("Login failed for user " + username + ": " + e.getMessage());
             return Optional.empty();
         }
-
-        return Optional.empty(); // Password did not match
+        return Optional.empty();
     }
 
     private String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+                    byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(hash);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Error hashing password", e);
