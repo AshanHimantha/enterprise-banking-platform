@@ -12,5 +12,5 @@ public interface AuthService {
     void registerUser(RegisterDTO registerDTO);
     Optional<String> login(String usernameOrEmail, String password);
     boolean verifyEmail(EmailVerificationDTO verificationDTO);
-
+    Optional<String> verifyLoginCode(String usernameOrEmail, String verificationCode);
 }

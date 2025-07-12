@@ -229,4 +229,183 @@ public class EmailServiceImpl implements EmailService {
             e.printStackTrace();
         }
     }
+
+    @Override
+    @Asynchronous
+    public void sendLoginVerificationCode(String recipientEmail, String username, String verificationCode) {
+        try {
+            Message message = new MimeMessage(mailSession);
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
+            message.setSubject("Orbin Bank - Login Verification Code");
+
+            String emailContent = "<!DOCTYPE html>" +
+                "<html lang=\"en\">" +
+                "<head>" +
+                    "<meta charset=\"UTF-8\">" +
+                    "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
+                    "<title>Login Verification - Orbin Bank</title>" +
+                    "<style>" +
+                        "* { box-sizing: border-box; }" +
+                        "body {" +
+                            "margin: 0;" +
+                            "padding: 20px;" +
+                            "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;" +
+                            "background-color: #f5f5f5;" +
+                            "line-height: 1.6;" +
+                        "}" +
+                        ".email-container {" +
+                            "max-width: 600px;" +
+                            "margin: 0 auto;" +
+                            "background: #ffffff;" +
+                            "border-radius: 12px;" +
+                            "overflow: hidden;" +
+                            "border: 1px solid #e9ecef;" +
+                        "}" +
+                        ".header {" +
+                            "background: linear-gradient(135deg, #ff8c00 0%, #ff9500 100%);" +
+                            "padding: 30px 20px;" +
+                            "text-align: center;" +
+                            "color: white;" +
+                        "}" +
+                        ".logo {" +
+                            "max-width: 80px;" +
+                            "height: auto;" +
+                            "margin-bottom: 15px;" +
+                            "border-radius: 8px;" +
+                            "background: #fffff1;" +
+                        "}" +
+                        ".header h1 {" +
+                            "margin: 0;" +
+                            "font-size: 24px;" +
+                            "font-weight: 600;" +
+                            "color: white !important;" +
+                        "}" +
+                        ".content {" +
+                            "padding: 40px 30px;" +
+                            "background: #ffffff;" +
+                        "}" +
+                        ".greeting {" +
+                            "font-size: 20px;" +
+                            "color: #333333;" +
+                            "margin: 0 0 20px 0;" +
+                            "font-weight: 500;" +
+                        "}" +
+                        ".message {" +
+                            "font-size: 16px;" +
+                            "color: #555555;" +
+                            "margin: 0 0 25px 0;" +
+                            "line-height: 1.7;" +
+                        "}" +
+                        ".verification-section {" +
+                            "background: #f8f9fa;" +
+                            "border: 2px solid #e9ecef;" +
+                            "border-radius: 10px;" +
+                            "padding: 25px;" +
+                            "text-align: center;" +
+                            "margin: 30px 0;" +
+                        "}" +
+                        ".verification-title {" +
+                            "font-size: 16px;" +
+                            "color: #333333;" +
+                            "margin: 0 0 15px 0;" +
+                            "font-weight: 600;" +
+                        "}" +
+                        ".verification-code {" +
+                            "background: #ff8c00 !important;" +
+                            "color: white !important;" +
+                            "font-size: 28px;" +
+                            "font-weight: 700;" +
+                            "padding: 15px 30px;" +
+                            "border-radius: 8px;" +
+                            "display: inline-block;" +
+                            "letter-spacing: 4px;" +
+                            "margin: 10px 0;" +
+                            "min-width: 200px;" +
+                            "border: 2px solid #ff8c00;" +
+                        "}" +
+                        ".instructions {" +
+                            "font-size: 14px;" +
+                            "color: #666666;" +
+                            "margin: 20px 0 0 0;" +
+                            "padding: 15px;" +
+                            "background: #fff3cd;" +
+                            "border: 1px solid #ffeaa7;" +
+                            "border-radius: 6px;" +
+                        "}" +
+                        ".security-info {" +
+                            "background: #d4edda;" +
+                            "border: 1px solid #c3e6cb;" +
+                            "border-radius: 6px;" +
+                            "padding: 15px;" +
+                            "margin: 20px 0;" +
+                            "font-size: 14px;" +
+                            "color: #155724;" +
+                        "}" +
+                        ".footer {" +
+                            "background: #f8f9fa;" +
+                            "padding: 25px 30px;" +
+                            "text-align: center;" +
+                            "border-top: 1px solid #e9ecef;" +
+                        "}" +
+                        ".footer-text {" +
+                            "color: #6c757d;" +
+                            "font-size: 12px;" +
+                            "margin: 0;" +
+                            "line-height: 1.5;" +
+                        "}" +
+                        ".highlight {" +
+                            "color: #ff8c00;" +
+                            "font-weight: 600;" +
+                        "}" +
+                    "</style>" +
+                "</head>" +
+                "<body>" +
+                    "<div class=\"email-container\">" +
+                        "<div class=\"header\">" +
+                            "<img src=\"https://ashan.1000dtechnology.com/assets/orbin2.jpg\" alt=\"Orbin Bank\" class=\"logo\">" +
+                            "<h1>Login Verification</h1>" +
+                        "</div>" +
+                        "<div class=\"content\">" +
+                            "<h2 class=\"greeting\">Hello " + username + "! 🔐</h2>" +
+                            "<p class=\"message\">" +
+                                "We detected a login attempt for your <span class=\"highlight\">Orbin Bank</span> account. For your security, please use the verification code below to complete your login:" +
+                            "</p>" +
+                            "<div class=\"verification-section\">" +
+                                "<div class=\"verification-title\">🔑 Login Verification Code</div>" +
+                                "<div class=\"verification-code\">" + verificationCode + "</div>" +
+                                "<div class=\"instructions\">" +
+                                    "⚠️ <strong>Important:</strong> Enter this code in your login screen to access your account." +
+                                "</div>" +
+                            "</div>" +
+                            "<div class=\"security-info\">" +
+                                "🔒 <strong>Security Notice:</strong><br>" +
+                                "• This code expires in <strong>10 minutes</strong><br>" +
+                                "• Never share this code with anyone<br>" +
+                                "• If you didn't attempt to log in, please contact us immediately" +
+                            "</div>" +
+                            "<p class=\"message\">" +
+                                "If you didn't request this login, please contact our security team at <span class=\"highlight\">security@orbinbank.com</span>" +
+                            "</p>" +
+                        "</div>" +
+                        "<div class=\"footer\">" +
+                            "<p class=\"footer-text\">" +
+                                "© 2025 Orbin Bank. All rights reserved.<br>" +
+                                "This is an automated message. Please do not reply to this email." +
+                            "</p>" +
+                        "</div>" +
+                    "</div>" +
+                "</body>" +
+                "</html>";
+
+            message.setContent(emailContent, "text/html; charset=utf-8");
+
+            Transport.send(message);
+
+            System.out.println("Login verification email sent successfully to " + recipientEmail);
+
+        } catch (MessagingException e) {
+            System.err.println("Error sending login verification email: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

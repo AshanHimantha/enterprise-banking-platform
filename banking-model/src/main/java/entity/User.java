@@ -152,6 +152,7 @@ public class User implements Serializable {
         this.emailVerificationCode = emailVerificationCode;
     }
 
+
     public KycStatus getKycStatus() {
         return kycStatus;
     }

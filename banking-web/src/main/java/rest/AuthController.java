@@ -12,6 +12,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import dto.LoginDTO;
+import dto.LoginVerificationDTO;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -47,16 +48,36 @@ public class AuthController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response login(LoginDTO loginDTO) {
-        Optional<String> tokenOptional = authService.login(loginDTO.getUsername(), loginDTO.getPassword());
+        try {
+            // Call login service - it will send verification code if credentials are valid
+            authService.login(loginDTO.getUsername(), loginDTO.getPassword());
+
+            // If we reach here, credentials were valid and verification code was sent
+            return Response.ok(Collections.singletonMap("message", "Verification code sent to your email. Please check your inbox.")).build();
+
+        } catch (Exception e) {
+            // If login fails due to invalid credentials or other errors
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(Collections.singletonMap("error", "Invalid username or password"))
+                    .build();
+        }
+    }
+
+    @POST
+    @Path("/verify-login")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response verifyLogin(LoginVerificationDTO verificationDTO) {
+        Optional<String> tokenOptional = authService.verifyLoginCode(verificationDTO.getUsername(), verificationDTO.getCode());
 
         if (tokenOptional.isPresent()) {
-            // If login is successful, return the JWT in the response
+            // If verification is successful, return the JWT token
             String token = tokenOptional.get();
             return Response.ok(Collections.singletonMap("token", token)).build();
         } else {
-            // If login fails, return a 401 Unauthorized error
-            return Response.status(Response.Status.UNAUTHORIZED)
-                    .entity(Collections.singletonMap("error", "Invalid username or password"))
+            // If verification fails
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Collections.singletonMap("error", "Invalid verification code"))
                     .build();
         }
     }

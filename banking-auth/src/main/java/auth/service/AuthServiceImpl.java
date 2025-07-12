@@ -284,12 +284,73 @@ public class AuthServiceImpl implements AuthService {
         try {
             User user = query.getSingleResult();
             if (user.getPassword().equals(hashPassword(password))) {
-                return Optional.of(tokenProvider.createToken(user));
+                // Generate login verification code
+                String loginVerificationCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+                user.setEmailVerificationCode(loginVerificationCode);
+                em.merge(user);
+
+                // Send login verification email
+                emailService.sendLoginVerificationCode(user.getEmail(), user.getUsername(), loginVerificationCode);
+
+                System.out.println("Login verification code sent to " + user.getEmail());
+
+                // Return empty for now - user needs to verify with code first
+                // In a real implementation, you'd return a temporary token or session ID
+                return Optional.empty();
             }
         } catch (Exception e) {
             System.err.println("Login failed for user " + usernameOrEmail + ": " + e.getMessage());
             return Optional.empty();
         }
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<String> verifyLoginCode(String usernameOrEmail, String verificationCode) {
+        // Validate input
+        if (usernameOrEmail == null || usernameOrEmail.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        if (verificationCode == null || verificationCode.trim().isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Try to find user by username or email
+        TypedQuery<User> query = em.createQuery(
+            "SELECT u FROM User u WHERE u.username = :identifier OR u.email = :identifier",
+            User.class
+        );
+        query.setParameter("identifier", usernameOrEmail.trim());
+
+        try {
+            User user = query.getSingleResult();
+
+            // Check if the provided code matches the one in the database
+            if (user.getEmailVerificationCode() != null &&
+                user.getEmailVerificationCode().equals(verificationCode.trim().toUpperCase())) {
+
+                // Clear the verification code so it can't be reused
+                user.setEmailVerificationCode(null);
+
+                // If email is not verified, mark it as verified since user proved access to email
+                if (!user.isEmailVerified()) {
+                    user.setEmailVerified(true);
+                    System.out.println("Email automatically verified for user: " + user.getUsername());
+                }
+
+                em.merge(user);
+
+                // Generate and return JWT token for successful login
+                String token = tokenProvider.createToken(user);
+                System.out.println("Login verification successful for user: " + user.getUsername());
+                return Optional.of(token);
+            }
+        } catch (Exception e) {
+            System.err.println("Login verification failed for user " + usernameOrEmail + ": " + e.getMessage());
+            return Optional.empty();
+        }
+
+        System.err.println("Login verification failed: Invalid code for user " + usernameOrEmail);
         return Optional.empty();
     }
 
