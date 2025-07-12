@@ -13,6 +13,14 @@
     <packaging>ear</packaging>
 
     <dependencies>
+        <!-- Core model module should be included first -->
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-model</artifactId>
+            <version>1.0</version>
+            <type>jar</type>
+        </dependency>
+
         <!-- Include the EJB module we created -->
         <dependency>
             <groupId>com.ashanhimantha.ee</groupId>
@@ -62,31 +70,35 @@
                 <configuration>
                     <version>10</version> <!-- Jakarta EE version -->
                     <defaultLibBundleDir>lib</defaultLibBundleDir>
-                     <modules>
-                        <!-- Explicitly define the EJB module -->
-                         <ejbModule>
-                             <groupId>com.ashanhimantha.ee</groupId>
-                             <artifactId>banking-accounts</artifactId>
-                             <bundleFileName>banking-accounts.jar</bundleFileName>
-                         </ejbModule>
+                    <modules>
+                        <!-- Core model should be available first -->
 
-                         <ejbModule>
-                             <groupId>com.ashanhimantha.ee</groupId>
-                             <artifactId>banking-auth</artifactId>
-                             <bundleFileName>banking-auth.jar</bundleFileName>
-                         </ejbModule>
+                        <!-- Auth module should be deployed early since other modules depend on it -->
+                        <ejbModule>
+                            <groupId>com.ashanhimantha.ee</groupId>
+                            <artifactId>banking-auth</artifactId>
+                            <bundleFileName>banking-auth.jar</bundleFileName>
+                        </ejbModule>
 
-                         <ejbModule>
-                             <groupId>com.ashanhimantha.ee</groupId>
-                             <artifactId>banking-kyc</artifactId>
-                             <bundleFileName>banking-kyc.jar</bundleFileName>
-                         </ejbModule>
+                        <!-- Business logic modules -->
+                        <ejbModule>
+                            <groupId>com.ashanhimantha.ee</groupId>
+                            <artifactId>banking-accounts</artifactId>
+                            <bundleFileName>banking-accounts.jar</bundleFileName>
+                        </ejbModule>
 
-                         <webModule>
-                             <groupId>com.ashanhimantha.ee</groupId>
-                             <artifactId>banking-web</artifactId>
-                             <contextRoot>/bank</contextRoot>
-                         </webModule>
+                        <ejbModule>
+                            <groupId>com.ashanhimantha.ee</groupId>
+                            <artifactId>banking-kyc</artifactId>
+                            <bundleFileName>banking-kyc.jar</bundleFileName>
+                        </ejbModule>
+
+                        <!-- Web module should be deployed last -->
+                        <webModule>
+                            <groupId>com.ashanhimantha.ee</groupId>
+                            <artifactId>banking-web</artifactId>
+                            <contextRoot>/bank</contextRoot>
+                        </webModule>
                     </modules>
 
                     <security>
