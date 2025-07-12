@@ -88,6 +88,7 @@ public class AuthServiceImpl implements AuthService {
         newUser.setPhoneNumber(registerDTO.getPhoneNumber().trim());
         newUser.setUsername(registerDTO.getUsername().trim());
 
+
         // 3. Set server-side defaults
         newUser.setPassword(hashPassword(registerDTO.getPassword()));
         // For simplicity, we set the initial passcode to be the same as the password.
@@ -105,6 +106,11 @@ public class AuthServiceImpl implements AuthService {
             // 4. Persist the new user and their role
             em.persist(newUser);
             em.flush(); // Ensure user is persisted before creating role
+
+            UserRole userRole = new UserRole();
+            userRole.setUsername(newUser.getUsername());
+            userRole.setRolename("NONE"); // Assign the NONE role
+            em.persist(userRole);
 
 
             emailService.sendVerificationEmail(newUser.getEmail(), newUser.getUsername(), verificationCode);

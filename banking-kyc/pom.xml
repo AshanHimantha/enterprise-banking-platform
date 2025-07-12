@@ -26,7 +26,7 @@
     </dependencies>
 
     <artifactId>banking-kyc</artifactId>
-    <packaging>jar</packaging>
+    <packaging>ejb</packaging>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>

@@ -180,7 +180,7 @@ public class EmailServiceImpl implements EmailService {
                 "<body>" +
                     "<div class=\"email-container\">" +
                         "<div class=\"header\">" +
-                            "<img src=\"https://ashan.1000dtechnology.com/assets/orbin.png\" alt=\"Orbin Bank\" class=\"logo\">" +
+                            "<img src=\"https://ashan.1000dtechnology.com/assets/orbin2.jpg\" alt=\"Orbin Bank\" class=\"logo\">" +
                             "<h1>Welcome to Orbin Bank</h1>" +
                         "</div>" +
                         "<div class=\"content\">" +

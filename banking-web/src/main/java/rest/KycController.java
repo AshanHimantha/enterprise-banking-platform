@@ -28,7 +28,7 @@ public class KycController {
     @POST
     @Path("/submit")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @RolesAllowed("CUSTOMER") // The user must be logged in, even without a full role yet
+    @RolesAllowed("NONE") // The user must be logged in, even without a full role yet
     public Response submitKyc(
             @Context SecurityContext securityContext,
             @FormDataParam("fullName") String fullName,

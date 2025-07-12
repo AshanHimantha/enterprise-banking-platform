@@ -29,6 +29,14 @@
             <type>ejb</type>
         </dependency>
 
+        <!-- Add the banking-kyc module as a dependency -->
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-kyc</artifactId>
+            <version>1.0</version>
+            <type>ejb</type>
+        </dependency>
+
         <!-- Add the banking-web module as a dependency -->
         <dependency>
             <groupId>com.ashanhimantha.ee</groupId>
@@ -68,6 +76,12 @@
                              <bundleFileName>banking-auth.jar</bundleFileName>
                          </ejbModule>
 
+                         <ejbModule>
+                             <groupId>com.ashanhimantha.ee</groupId>
+                             <artifactId>banking-kyc</artifactId>
+                             <bundleFileName>banking-kyc.jar</bundleFileName>
+                         </ejbModule>
+
                          <webModule>
                              <groupId>com.ashanhimantha.ee</groupId>
                              <artifactId>banking-web</artifactId>
@@ -84,6 +98,9 @@
                         </security-role>
                         <security-role>
                             <role-name>CUSTOMER</role-name>
+                        </security-role>
+                        <security-role>
+                            <role-name>NONE</role-name>
                         </security-role>
                     </security>
                 </configuration>
