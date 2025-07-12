@@ -15,6 +15,8 @@ public class KycDocumentDto {
     private String city;
     private String postalCode;
     private String country;
+    private String idFrontPhotoPath;
+    private String idBackPhotoPath;
     private LocalDateTime submittedAt;
     private KycStatus status;
     private String reviewedBy;
@@ -26,8 +28,9 @@ public class KycDocumentDto {
 
     public KycDocumentDto(Long id, String username, String fullName, LocalDate dateOfBirth,
                          String nationality, String idNumber, String address, String city,
-                         String postalCode, String country, LocalDateTime submittedAt,
-                         KycStatus status, String reviewedBy, LocalDateTime reviewedAt, String reviewNotes) {
+                         String postalCode, String country, String idFrontPhotoPath, String idBackPhotoPath,
+                         LocalDateTime submittedAt, KycStatus status, String reviewedBy,
+                         LocalDateTime reviewedAt, String reviewNotes) {
         this.id = id;
         this.username = username;
         this.fullName = fullName;
@@ -38,6 +41,8 @@ public class KycDocumentDto {
         this.city = city;
         this.postalCode = postalCode;
         this.country = country;
+        this.idFrontPhotoPath = idFrontPhotoPath;
+        this.idBackPhotoPath = idBackPhotoPath;
         this.submittedAt = submittedAt;
         this.status = status;
         this.reviewedBy = reviewedBy;
@@ -75,6 +80,12 @@ public class KycDocumentDto {
 
     public String getCountry() { return country; }
     public void setCountry(String country) { this.country = country; }
+
+    public String getIdFrontPhotoPath() { return idFrontPhotoPath; }
+    public void setIdFrontPhotoPath(String idFrontPhotoPath) { this.idFrontPhotoPath = idFrontPhotoPath; }
+
+    public String getIdBackPhotoPath() { return idBackPhotoPath; }
+    public void setIdBackPhotoPath(String idBackPhotoPath) { this.idBackPhotoPath = idBackPhotoPath; }
 
     public LocalDateTime getSubmittedAt() { return submittedAt; }
     public void setSubmittedAt(LocalDateTime submittedAt) { this.submittedAt = submittedAt; }

@@ -208,6 +208,8 @@ public class KycServiceImpl implements KycService {
             document.getCity(),
             document.getPostalCode(),
             document.getCountry(),
+            document.getIdFrontPhotoPath(),
+            document.getIdBackPhotoPath(),
             document.getSubmittedAt(),
             user.getKycStatus(),
             user.getKycReviewedBy(),
