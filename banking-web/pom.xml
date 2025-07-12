@@ -2,12 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>com.ashanhimantha.ee</groupId>
         <artifactId>enterprise-banking-platform</artifactId>
         <version>1.0</version>
-
     </parent>
 
     <artifactId>banking-web</artifactId>
@@ -19,8 +20,8 @@
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-api</artifactId>
             <version>10.0.0</version>
+            <scope>provided</scope>
         </dependency>
-
 
         <dependency>
             <groupId>com.ashanhimantha.ee</groupId>
@@ -35,6 +36,19 @@
             <version>1.0</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-kyc</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-multipart</artifactId>
+            <version>3.1.5</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -44,8 +58,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.4.0</version>
                 <configuration>
-                    <!-- Don't fail if web.xml is missing, as we use annotations -->
-
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
         </plugins>

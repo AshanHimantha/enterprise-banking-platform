@@ -11,7 +11,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 
 @Path("/admin")
-public class KYCController {
+public class AdminKYCController {
 
     @EJB
     private AdminService adminService;

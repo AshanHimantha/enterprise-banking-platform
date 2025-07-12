@@ -12,8 +12,10 @@
         <module>banking-model</module>
         <module>banking-accounts</module>
         <module>banking-ear</module>
+        <module>banking-kyc</module>
         <module>banking-web</module>
         <module>banking-auth</module>
+
     </modules>
 
     <dependencies>

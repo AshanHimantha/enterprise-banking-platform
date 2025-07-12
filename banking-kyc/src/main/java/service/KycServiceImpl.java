@@ -1,0 +1,95 @@
+package service;
+
+
+import entity.KycDocument;
+import entity.User;
+import enums.KycStatus;
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Stateless
+public class KycServiceImpl implements KycService {
+
+    @PersistenceContext(unitName = "bankingPU")
+    private EntityManager em;
+
+    // IMPORTANT: In a real app, this path should come from a config file.
+    private static final String UPLOAD_DIR = "/opt/banking_uploads/kyc_images/";
+
+    @Override
+    public void submitKyc(
+            String username, String fullName, LocalDate dateOfBirth, String nationality,
+            String idNumber, String address, String city, String postalCode, String country,
+            InputStream idFrontPhotoStream, String idFrontPhotoFileName,
+            InputStream idBackPhotoStream, String idBackPhotoFileName) {
+
+        // Find the user
+        TypedQuery<User> userQuery = em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class);
+        userQuery.setParameter("username", username);
+        User user = userQuery.getSingleResult();
+
+        if (user.getKycStatus() == KycStatus.VERIFIED) {
+            throw new IllegalStateException("KYC is already verified for this user.");
+        }
+
+        try {
+            // 1. Save the uploaded files to the server's file system
+            String frontPhotoSavedName = saveFile(idFrontPhotoStream, idFrontPhotoFileName, username);
+            String backPhotoSavedName = saveFile(idBackPhotoStream, idBackPhotoFileName, username);
+
+            // 2. Create and populate the KycDocument entity
+            KycDocument kycDoc = new KycDocument();
+            kycDoc.setUser(user);
+            kycDoc.setFullName(fullName);
+            kycDoc.setDateOfBirth(dateOfBirth);
+            kycDoc.setNationality(nationality);
+            kycDoc.setIdNumber(idNumber);
+            kycDoc.setAddress(address);
+            kycDoc.setCity(city);
+            kycDoc.setPostalCode(postalCode);
+            kycDoc.setCountry(country);
+            kycDoc.setIdFrontPhotoPath(frontPhotoSavedName);
+            kycDoc.setIdBackPhotoPath(backPhotoSavedName);
+            kycDoc.setSubmittedAt(LocalDateTime.now());
+
+            // 3. Save the KYC document record to the database
+            em.persist(kycDoc);
+
+            // 4. Update the user's status to indicate KYC is pending review
+            // (It's already PENDING by default, but this is explicit)
+            user.setKycStatus(KycStatus.PENDING);
+            em.merge(user);
+
+        } catch (Exception e) {
+            // In a real app, you would have rollback logic for the saved files
+            throw new RuntimeException("Failed to process KYC submission.", e);
+        }
+    }
+
+    private String saveFile(InputStream inputStream, String originalFileName, String username) throws Exception {
+        // Create a unique filename to avoid conflicts
+        String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+        String uniqueFileName = username + "_" + UUID.randomUUID().toString() + extension;
+
+        // Ensure the upload directory exists
+        File uploadDir = new File(UPLOAD_DIR);
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
+
+        java.nio.file.Path destination = Paths.get(UPLOAD_DIR + uniqueFileName);
+        Files.copy(inputStream, destination, StandardCopyOption.REPLACE_EXISTING);
+
+        return destination.toString(); // Return the full path to store in the DB
+    }
+}
