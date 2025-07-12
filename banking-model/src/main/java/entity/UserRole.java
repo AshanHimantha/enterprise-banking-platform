@@ -9,6 +9,7 @@ import java.io.Serializable;
         // Add a unique constraint to prevent assigning the same role to the same user twice
         uniqueConstraints = @UniqueConstraint(columnNames = {"username", "rolename"})
 )
+@Cacheable(value = false)
 public class UserRole implements Serializable {
 
     @Id

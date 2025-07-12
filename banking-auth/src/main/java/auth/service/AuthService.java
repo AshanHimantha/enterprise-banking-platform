@@ -3,6 +3,7 @@ package auth.service;
 
 import dto.EmailVerificationDTO;
 import dto.RegisterDTO;
+import dto.TokenUpdateDTO;
 import jakarta.ejb.Local;
 import java.util.Optional;
 
@@ -13,4 +14,5 @@ public interface AuthService {
     Optional<String> login(String usernameOrEmail, String password);
     boolean verifyEmail(EmailVerificationDTO verificationDTO);
     Optional<String> verifyLoginCode(String usernameOrEmail, String verificationCode);
+    Optional<String> updateJwtToken(TokenUpdateDTO tokenUpdateDTO);
 }

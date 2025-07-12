@@ -4,8 +4,7 @@ package rest;
 import auth.service.AuthService;
 import dto.EmailVerificationDTO;
 import dto.RegisterDTO;
-import entity.User;
-import jakarta.annotation.security.RolesAllowed;
+import dto.TokenUpdateDTO;
 import jakarta.ejb.EJB;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.ws.rs.*;
@@ -99,8 +98,28 @@ public class AuthController {
         }
     }
 
+    @POST
+    @Path("/refresh-token")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateJwtToken(TokenUpdateDTO tokenUpdateDTO) {
+        try {
+            Optional<String> newTokenOptional = authService.updateJwtToken(tokenUpdateDTO);
 
-
-
+            if (newTokenOptional.isPresent()) {
+                String newToken = newTokenOptional.get();
+                return Response.ok(Collections.singletonMap("token", newToken)).build();
+            } else {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity(Collections.singletonMap("error", "Invalid or expired token"))
+                        .build();
+            }
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Collections.singletonMap("error", "Token update failed: " + e.getMessage()))
+                    .build();
+        }
+    }
 
     }
+

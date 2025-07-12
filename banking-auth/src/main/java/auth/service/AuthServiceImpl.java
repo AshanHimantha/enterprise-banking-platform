@@ -3,6 +3,7 @@ package auth.service;
 import auth.util.TokenProvider;
 import dto.EmailVerificationDTO;
 import dto.RegisterDTO;
+import dto.TokenUpdateDTO;
 import entity.User;
 import entity.UserRole;
 import enums.AccountLevel;
@@ -352,6 +353,53 @@ public class AuthServiceImpl implements AuthService {
 
         System.err.println("Login verification failed: Invalid code for user " + usernameOrEmail);
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<String> updateJwtToken(TokenUpdateDTO tokenUpdateDTO) {
+        // Validate input
+        if (tokenUpdateDTO == null ||
+            tokenUpdateDTO.getCurrentToken() == null ||
+            tokenUpdateDTO.getCurrentToken().trim().isEmpty()) {
+            return Optional.empty();
+        }
+
+        try {
+            // Validate the current token
+            if (!tokenProvider.validateToken(tokenUpdateDTO.getCurrentToken())) {
+                System.err.println("Token validation failed: Invalid or expired token");
+                return Optional.empty();
+            }
+
+            // Extract claims from the current token
+            var claims = tokenProvider.getClaimsFromToken(tokenUpdateDTO.getCurrentToken());
+            String usernameFromToken = claims.getSubject();
+
+            // If username is provided in DTO, verify it matches the token
+            if (tokenUpdateDTO.getUsername() != null &&
+                !tokenUpdateDTO.getUsername().trim().isEmpty() &&
+                !usernameFromToken.equals(tokenUpdateDTO.getUsername().trim())) {
+                System.err.println("Token update failed: Username mismatch");
+                return Optional.empty();
+            }
+
+            // Find the user in the database
+            TypedQuery<User> query = em.createQuery(
+                "SELECT u FROM User u WHERE u.username = :username", User.class);
+            query.setParameter("username", usernameFromToken);
+
+            User user = query.getSingleResult();
+
+            // Generate new JWT token
+            String newToken = tokenProvider.createToken(user);
+            System.out.println("JWT token successfully updated for user: " + user.getUsername());
+
+            return Optional.of(newToken);
+
+        } catch (Exception e) {
+            System.err.println("Token update failed: " + e.getMessage());
+            return Optional.empty();
+        }
     }
 
     private String hashPassword(String password) {

@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "app_user")
+@Cacheable(value = false)
 public class User implements Serializable {
 
     @Id
