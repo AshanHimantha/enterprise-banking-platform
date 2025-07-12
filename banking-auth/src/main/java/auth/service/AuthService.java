@@ -1,8 +1,8 @@
 package auth.service;
 
 
+import dto.EmailVerificationDTO;
 import dto.RegisterDTO;
-import entity.User;
 import jakarta.ejb.Local;
 import java.util.Optional;
 
@@ -10,5 +10,7 @@ import java.util.Optional;
 public interface AuthService {
     // Change the signature to use the DTO
     void registerUser(RegisterDTO registerDTO, String role);
-    Optional<String> login(String username, String password);
+    Optional<String> login(String usernameOrEmail, String password);
+    boolean verifyEmail(EmailVerificationDTO verificationDTO);
+
 }

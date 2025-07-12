@@ -1,11 +1,13 @@
 package auth.service;
 
 import auth.util.TokenProvider;
+import dto.EmailVerificationDTO;
 import dto.RegisterDTO;
 import entity.User;
 import entity.UserRole;
 import enums.AccountLevel;
 import enums.KycStatus;
+import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -16,6 +18,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.UUID;
 
 @Stateless
 public class AuthServiceImpl implements AuthService {
@@ -25,6 +28,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Inject
     private TokenProvider tokenProvider;
+
+    @EJB
+    private EmailService emailService;
 
     // The method signature is now corrected to use RegisterDTO
     @Override
@@ -75,14 +81,14 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // Check if the username-role combination already exists
-        TypedQuery<Long> roleQuery = em.createQuery(
-                "SELECT COUNT(ur) FROM UserRole ur WHERE ur.username = :username AND ur.rolename = :role", Long.class);
-        roleQuery.setParameter("username", registerDTO.getUsername());
-        roleQuery.setParameter("role", role);
-
-        if (roleQuery.getSingleResult() > 0) {
-            throw new IllegalArgumentException("User role combination already exists.");
-        }
+//        TypedQuery<Long> roleQuery = em.createQuery(
+//                "SELECT COUNT(ur) FROM UserRole ur WHERE ur.username = :username AND ur.rolename = :role", Long.class);
+//        roleQuery.setParameter("username", registerDTO.getUsername());
+//        roleQuery.setParameter("role", role);
+//
+//        if (roleQuery.getSingleResult() > 0) {
+//            throw new IllegalArgumentException("User role combination already exists.");
+//        }
 
         // 2. Map DTO to User entity
         User newUser = new User();
@@ -102,21 +108,67 @@ public class AuthServiceImpl implements AuthService {
         newUser.setEmailVerified(false);
         newUser.setKycStatus(KycStatus.PENDING);
         newUser.setAccountLevel(AccountLevel.BRONZE);
+        String verificationCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        newUser.setEmailVerificationCode(verificationCode);
 
         try {
             // 4. Persist the new user and their role
             em.persist(newUser);
             em.flush(); // Ensure user is persisted before creating role
 
-            UserRole userRole = new UserRole();
-            userRole.setUsername(newUser.getUsername());
-            userRole.setRolename(role);
-            em.persist(userRole);
+//            UserRole userRole = new UserRole();
+//            userRole.setUsername(newUser.getUsername());
+//            userRole.setRolename(role);
+//            em.persist(userRole);
+
+            emailService.sendVerificationEmail(newUser.getEmail(), newUser.getUsername(), verificationCode);
         } catch (Exception e) {
             // Log the error and throw a more user-friendly exception
             System.err.println("Error registering user " + registerDTO.getUsername() + ": " + e.getMessage());
             throw new RuntimeException("Registration failed. Please try again.", e);
         }
+    }
+
+
+    @Override
+    public boolean verifyEmail(EmailVerificationDTO verificationDTO) {
+        if (verificationDTO == null || verificationDTO.getEmail() == null || verificationDTO.getCode() == null) {
+            return false;
+        }
+
+        // Find the user by their email
+        TypedQuery<User> query = em.createQuery(
+                "SELECT u FROM User u WHERE u.email = :email", User.class);
+        query.setParameter("email", verificationDTO.getEmail().trim().toLowerCase());
+
+        try {
+            User user = query.getSingleResult();
+
+            // Check if the user is already verified
+            if (user.isEmailVerified()) {
+                return true; // Already verified, nothing to do.
+            }
+
+            // Check if the provided code matches the one in the database
+            if (user.getEmailVerificationCode() != null && user.getEmailVerificationCode().equals(verificationDTO.getCode().trim().toUpperCase())) {
+
+                // Codes match! Update the user.
+                user.setEmailVerified(true);
+                user.setEmailVerificationCode(null); // Clear the code so it can't be reused
+                em.merge(user); // Use merge to update the existing entity
+
+                System.out.println("Email successfully verified for user: " + user.getUsername());
+                return true;
+            }
+        } catch (Exception e) {
+            // User not found
+            System.err.println("Email verification failed: User not found for email " + verificationDTO.getEmail());
+            return false;
+        }
+
+        // Codes did not match
+        System.err.println("Email verification failed: Invalid code for email " + verificationDTO.getEmail());
+        return false;
     }
 
     private void validateRequiredFields(RegisterDTO registerDTO) {
@@ -221,9 +273,21 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Optional<String> login(String username, String password) {
-        TypedQuery<User> query = em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class);
-        query.setParameter("username", username);
+    public Optional<String> login(String usernameOrEmail, String password) {
+        // Validate input
+        if (usernameOrEmail == null || usernameOrEmail.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        if (password == null || password.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Try to find user by username or email
+        TypedQuery<User> query = em.createQuery(
+            "SELECT u FROM User u WHERE u.username = :identifier OR u.email = :identifier",
+            User.class
+        );
+        query.setParameter("identifier", usernameOrEmail.trim());
 
         try {
             User user = query.getSingleResult();
@@ -231,7 +295,7 @@ public class AuthServiceImpl implements AuthService {
                 return Optional.of(tokenProvider.createToken(user));
             }
         } catch (Exception e) {
-            System.err.println("Login failed for user " + username + ": " + e.getMessage());
+            System.err.println("Login failed for user " + usernameOrEmail + ": " + e.getMessage());
             return Optional.empty();
         }
         return Optional.empty();
@@ -246,4 +310,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Error hashing password", e);
         }
     }
+
+
+
 }

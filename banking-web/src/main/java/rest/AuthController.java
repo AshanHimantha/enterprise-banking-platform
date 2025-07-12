@@ -2,14 +2,13 @@ package rest;
 
 
 import auth.service.AuthService;
+import dto.EmailVerificationDTO;
 import dto.RegisterDTO;
 import entity.User;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.EJB;
 import jakarta.enterprise.context.RequestScoped;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import dto.LoginDTO;
@@ -61,4 +60,26 @@ public class AuthController {
                     .build();
         }
     }
-}
+
+
+    @POST
+    @Path("/verify-email")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response verifyEmail(EmailVerificationDTO verificationDTO) {
+        boolean isVerified = authService.verifyEmail(verificationDTO);
+
+        if (isVerified) {
+            return Response.ok(Collections.singletonMap("message", "Email verified successfully.")).build();
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Collections.singletonMap("error", "Invalid email or verification code."))
+                    .build();
+        }
+    }
+
+
+
+
+
+    }
