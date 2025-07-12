@@ -5,6 +5,7 @@ import enums.AccountLevel;
 import enums.KycStatus;
 import jakarta.persistence.*;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "app_user")
@@ -40,6 +41,12 @@ public class User implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private KycStatus kycStatus = KycStatus.PENDING;
+
+    // KYC Review fields
+    private String kycReviewedBy;
+    private LocalDateTime kycReviewedAt;
+    @Column(length = 1000)
+    private String kycReviewNotes;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -151,6 +158,30 @@ public class User implements Serializable {
 
     public void setKycStatus(KycStatus kycStatus) {
         this.kycStatus = kycStatus;
+    }
+
+    public String getKycReviewedBy() {
+        return kycReviewedBy;
+    }
+
+    public void setKycReviewedBy(String kycReviewedBy) {
+        this.kycReviewedBy = kycReviewedBy;
+    }
+
+    public LocalDateTime getKycReviewedAt() {
+        return kycReviewedAt;
+    }
+
+    public void setKycReviewedAt(LocalDateTime kycReviewedAt) {
+        this.kycReviewedAt = kycReviewedAt;
+    }
+
+    public String getKycReviewNotes() {
+        return kycReviewNotes;
+    }
+
+    public void setKycReviewNotes(String kycReviewNotes) {
+        this.kycReviewNotes = kycReviewNotes;
     }
 
     public AccountLevel getAccountLevel() {
