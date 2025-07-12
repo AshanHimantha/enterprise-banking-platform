@@ -30,7 +30,7 @@ public class AuthController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response register(RegisterDTO registerDTO) { // Use the DTO
         try {
-            authService.registerUser(registerDTO, "CUSTOMER");
+            authService.registerUser(registerDTO);
             return Response.status(Response.Status.CREATED)
                     .entity(Collections.singletonMap("message", "User registered successfully"))
                     .build();

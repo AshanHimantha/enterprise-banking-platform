@@ -34,15 +34,13 @@ public class AuthServiceImpl implements AuthService {
 
     // The method signature is now corrected to use RegisterDTO
     @Override
-    public void registerUser(RegisterDTO registerDTO, String role) {
+    public void registerUser(RegisterDTO registerDTO) {
         // 1. Validate input - Basic null checks
         if (registerDTO == null) {
             throw new IllegalArgumentException("Registration data cannot be null.");
         }
 
-        if (role == null || role.trim().isEmpty()) {
-            throw new IllegalArgumentException("Role cannot be null or empty.");
-        }
+
 
         // Validate required fields
         validateRequiredFields(registerDTO);
@@ -80,15 +78,7 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("This phone number is already registered.");
         }
 
-        // Check if the username-role combination already exists
-//        TypedQuery<Long> roleQuery = em.createQuery(
-//                "SELECT COUNT(ur) FROM UserRole ur WHERE ur.username = :username AND ur.rolename = :role", Long.class);
-//        roleQuery.setParameter("username", registerDTO.getUsername());
-//        roleQuery.setParameter("role", role);
-//
-//        if (roleQuery.getSingleResult() > 0) {
-//            throw new IllegalArgumentException("User role combination already exists.");
-//        }
+
 
         // 2. Map DTO to User entity
         User newUser = new User();
@@ -116,10 +106,6 @@ public class AuthServiceImpl implements AuthService {
             em.persist(newUser);
             em.flush(); // Ensure user is persisted before creating role
 
-//            UserRole userRole = new UserRole();
-//            userRole.setUsername(newUser.getUsername());
-//            userRole.setRolename(role);
-//            em.persist(userRole);
 
             emailService.sendVerificationEmail(newUser.getEmail(), newUser.getUsername(), verificationCode);
         } catch (Exception e) {
