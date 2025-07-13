@@ -22,6 +22,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 @Stateless
 public class AuthServiceImpl implements AuthService {
@@ -102,6 +103,7 @@ public class AuthServiceImpl implements AuthService {
         newUser.setEmailVerified(false);
         newUser.setKycStatus(KycStatus.PENDING);
         newUser.setAccountLevel(AccountLevel.BRONZE);
+        newUser.setRegisteredDate(LocalDateTime.now());
         String verificationCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         newUser.setEmailVerificationCode(verificationCode);
 
@@ -360,6 +362,9 @@ public class AuthServiceImpl implements AuthService {
                     user.setEmailVerified(true);
                     System.out.println("Email automatically verified for user: " + user.getUsername());
                 }
+
+                // Update last login date
+                user.setLastLoginDate(LocalDateTime.now());
 
                 em.merge(user);
 

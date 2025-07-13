@@ -60,6 +60,9 @@ public class User implements Serializable {
 
     private String profilePictureUrl;
 
+    private LocalDateTime registeredDate;
+    private LocalDateTime lastLoginDate;
+
     public Long getId() {
         return id;
     }
@@ -215,5 +218,20 @@ public class User implements Serializable {
         this.status = status;
     }
 
-}
+    public LocalDateTime getRegisteredDate() {
+        return registeredDate;
+    }
 
+    public void setRegisteredDate(LocalDateTime registeredDate) {
+        this.registeredDate = registeredDate;
+    }
+
+    public LocalDateTime getLastLoginDate() {
+        return lastLoginDate;
+    }
+
+    public void setLastLoginDate(LocalDateTime lastLoginDate) {
+        this.lastLoginDate = lastLoginDate;
+    }
+
+}

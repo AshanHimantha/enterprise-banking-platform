@@ -5,6 +5,7 @@ import entity.User;
 import enums.AccountLevel;
 import enums.KycStatus;
 import enums.UserStatus;
+import java.time.LocalDateTime;
 
 /**
  * A Data Transfer Object representing a User for administrative purposes.
@@ -22,6 +23,8 @@ public class UserDTO {
     private AccountLevel accountLevel;
     private UserStatus status;
     private String profilePictureUrl;
+    private LocalDateTime registeredDate;
+    private LocalDateTime lastLoginDate;
 
     // A no-argument constructor is required for some frameworks.
     public UserDTO() {}
@@ -114,6 +117,22 @@ public class UserDTO {
         this.profilePictureUrl = profilePictureUrl;
     }
 
+    public LocalDateTime getRegisteredDate() {
+        return registeredDate;
+    }
+
+    public void setRegisteredDate(LocalDateTime registeredDate) {
+        this.registeredDate = registeredDate;
+    }
+
+    public LocalDateTime getLastLoginDate() {
+        return lastLoginDate;
+    }
+
+    public void setLastLoginDate(LocalDateTime lastLoginDate) {
+        this.lastLoginDate = lastLoginDate;
+    }
+
     // A convenient constructor to map from the database Entity to this DTO.
     public UserDTO(User user) {
         this.id = user.getId();
@@ -127,6 +146,8 @@ public class UserDTO {
         this.accountLevel = user.getAccountLevel();
         this.status = user.getStatus();
         this.profilePictureUrl = user.getProfilePictureUrl();
+        this.registeredDate = user.getRegisteredDate();
+        this.lastLoginDate = user.getLastLoginDate();
     }
 
     // --- Generate Getters and Setters for all fields below ---
