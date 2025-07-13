@@ -211,10 +211,9 @@ public class KycServiceImpl implements KycService {
             document.getIdFrontPhotoPath(),
             document.getIdBackPhotoPath(),
             document.getSubmittedAt(),
-            user.getKycStatus(),
-            document.getReviewedBy(),
-            document.getReviewedAt(),
-            document.getReviewNotes()
+            user.getKycStatus()
+
+            // Review fields removed - now stored in User entity
         );
     }
 }

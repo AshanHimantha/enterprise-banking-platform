@@ -19,9 +19,6 @@ public class KycDocumentDto {
     private String idBackPhotoPath;
     private LocalDateTime submittedAt;
     private KycStatus status;
-    private String reviewedBy;
-    private LocalDateTime reviewedAt;
-    private String reviewNotes;
 
     // Constructors
     public KycDocumentDto() {}
@@ -29,8 +26,7 @@ public class KycDocumentDto {
     public KycDocumentDto(Long id, String username, String fullName, LocalDate dateOfBirth,
                          String nationality, String idNumber, String address, String city,
                          String postalCode, String country, String idFrontPhotoPath, String idBackPhotoPath,
-                         LocalDateTime submittedAt, KycStatus status, String reviewedBy,
-                         LocalDateTime reviewedAt, String reviewNotes) {
+                         LocalDateTime submittedAt, KycStatus status) {
         this.id = id;
         this.username = username;
         this.fullName = fullName;
@@ -45,9 +41,6 @@ public class KycDocumentDto {
         this.idBackPhotoPath = idBackPhotoPath;
         this.submittedAt = submittedAt;
         this.status = status;
-        this.reviewedBy = reviewedBy;
-        this.reviewedAt = reviewedAt;
-        this.reviewNotes = reviewNotes;
     }
 
     // Getters and Setters
@@ -92,13 +85,4 @@ public class KycDocumentDto {
 
     public KycStatus getStatus() { return status; }
     public void setStatus(KycStatus status) { this.status = status; }
-
-    public String getReviewedBy() { return reviewedBy; }
-    public void setReviewedBy(String reviewedBy) { this.reviewedBy = reviewedBy; }
-
-    public LocalDateTime getReviewedAt() { return reviewedAt; }
-    public void setReviewedAt(LocalDateTime reviewedAt) { this.reviewedAt = reviewedAt; }
-
-    public String getReviewNotes() { return reviewNotes; }
-    public void setReviewNotes(String reviewNotes) { this.reviewNotes = reviewNotes; }
 }

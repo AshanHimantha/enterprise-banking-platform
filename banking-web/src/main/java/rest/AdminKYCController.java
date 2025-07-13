@@ -52,6 +52,32 @@ public class AdminKYCController {
         }
     }
 
+    @POST
+    @Path("/users/{username}/reject-kyc")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed({"ADMIN", "EMPLOYEE"}) // Secure the API endpoint
+    public Response rejectKyc(@PathParam("username") String username, Map<String, String> request) {
+        try {
+            String reviewNotes = request.get("reviewNotes");
+            String reviewedBy = request.get("reviewedBy");
+
+            // Default values if not provided
+            if (reviewNotes == null) {
+                reviewNotes = "";
+            }
+            if (reviewedBy == null) {
+                reviewedBy = "SYSTEM";
+            }
+
+            adminService.rejectKyc(username, reviewNotes, reviewedBy);
+            return Response.ok(Collections.singletonMap("message", "KYC rejected for user " + username)).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(Collections.singletonMap("error", "User not found or operation failed: " + e.getMessage()))
+                    .build();
+        }
+    }
+
     /**
      * Get all KYC documents (Admin only)
      */
@@ -342,4 +368,3 @@ public class AdminKYCController {
         return pagination;
     }
 }
-
