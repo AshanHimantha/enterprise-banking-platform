@@ -6,4 +6,6 @@ import jakarta.ejb.Local;
 public interface EmailService {
     void sendVerificationEmail(String recipientEmail, String username, String verificationCode);
     void sendLoginVerificationCode(String recipientEmail, String username, String verificationCode);
+    void sendAccountSuspensionEmail(String recipientEmail, String username, String reason, String adminUsername);
+    void sendAccountReactivationEmail(String recipientEmail, String username, String adminUsername);
 }

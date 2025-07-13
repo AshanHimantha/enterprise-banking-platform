@@ -7,6 +7,7 @@ import enums.AccountLevel;
 import enums.KycStatus;
 import enums.UserStatus;
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -23,6 +24,9 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @PersistenceContext(unitName = "bankingPU")
     private EntityManager em;
+
+    @EJB
+    private EmailService emailService;
 
     @Override
     public List<UserDTO> getAllUsers() {
@@ -51,6 +55,14 @@ public class UserManagementServiceImpl implements UserManagementService {
         user.setKycReviewedBy(adminUsername);
         user.setKycReviewedAt(LocalDateTime.now());
         em.merge(user);
+
+        // Send suspension email notification
+        try {
+            emailService.sendAccountSuspensionEmail(user.getEmail(), user.getUsername(), reason, adminUsername);
+        } catch (Exception e) {
+            System.err.println("Warning: Failed to send suspension email to " + user.getEmail() + ": " + e.getMessage());
+            // Don't throw exception here as the suspension was successful, just email failed
+        }
     }
 
     @Override
@@ -67,6 +79,14 @@ public class UserManagementServiceImpl implements UserManagementService {
         user.setKycReviewedBy(adminUsername);
         user.setKycReviewedAt(LocalDateTime.now());
         em.merge(user);
+
+        // Send reactivation email notification
+        try {
+            emailService.sendAccountReactivationEmail(user.getEmail(), user.getUsername(), adminUsername);
+        } catch (Exception e) {
+            System.err.println("Warning: Failed to send reactivation email to " + user.getEmail() + ": " + e.getMessage());
+            // Don't throw exception here as the reactivation was successful, just email failed
+        }
     }
 
     @Override
