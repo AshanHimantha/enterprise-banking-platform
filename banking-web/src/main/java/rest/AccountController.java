@@ -2,6 +2,7 @@ package rest;
 
 
 import entity.User;
+import enums.AccountType;
 import jakarta.ejb.EJB;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -24,7 +25,7 @@ public class AccountController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createNewUserAndAccount(User user) {
         try {
-            accountService.createAccountForNewUser(user, new BigDecimal("100.0"));
+            accountService.createAccountForNewUser(user, new BigDecimal("100.0"), AccountType.SAVING);
             return Response.status(Response.Status.CREATED)
                     .entity("User and account created successfully for " + user.getUsername())
                     .build();

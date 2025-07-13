@@ -5,6 +5,7 @@ package auth.service;
 import entity.KycDocument;
 import entity.User;
 import entity.UserRole;
+import enums.AccountType;
 import enums.KycStatus;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.EJB;
@@ -79,7 +80,7 @@ public class AdminServiceImpl implements AdminService {
 
         // 5. Create account for the user with initial deposit of 0
         try {
-            accountService.createAccountForNewUser(user, BigDecimal.ZERO);
+            accountService.createAccountForNewUser(user, BigDecimal.ZERO , AccountType.SAVING);
             System.out.println("Created account for user: " + username);
         } catch (Exception e) {
             System.err.println("Failed to create account for user: " + username + ". Error: " + e.getMessage());

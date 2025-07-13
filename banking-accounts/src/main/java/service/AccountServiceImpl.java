@@ -2,6 +2,7 @@ package service;
 
 import entity.Account;
 import entity.User;
+import enums.AccountType;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -18,13 +19,14 @@ public class AccountServiceImpl implements AccountService { // Implements the in
     private EntityManager em;
 
     @Override // Add the @Override annotation
-    public void createAccountForNewUser(User user, BigDecimal initialDeposit) {
+    public void createAccountForNewUser(User user, BigDecimal initialDeposit , AccountType accountType) {
         em.persist(user);
 
         Account account = new Account();
         account.setOwner(user);
         account.setBalance(initialDeposit);
         account.setAccountNumber(generateHumanReadableAccountNumber());
+        account.setAccountType(accountType);
 
         em.persist(account);
 

@@ -3,6 +3,7 @@ package entity;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import enums.AccountType;
 
 @Entity
 @Table(name = "account")
@@ -50,9 +51,21 @@ public class Account implements Serializable {
     @Column(nullable = false)
     private BigDecimal balance;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AccountType accountType;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;
+
+    public AccountType getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(AccountType accountType) {
+        this.accountType = accountType;
+    }
 
     // Getters and Setters...
 }
