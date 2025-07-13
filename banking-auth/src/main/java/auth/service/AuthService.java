@@ -12,7 +12,7 @@ public interface AuthService {
     // Change the signature to use the DTO
     void registerUser(RegisterDTO registerDTO);
     Optional<String> login(String usernameOrEmail, String password);
-    boolean verifyEmail(EmailVerificationDTO verificationDTO);
+    Optional<String> verifyEmail(EmailVerificationDTO verificationDTO);
     Optional<String> verifyLoginCode(String usernameOrEmail, String verificationCode);
     Optional<String> updateJwtToken(TokenUpdateDTO tokenUpdateDTO);
 }

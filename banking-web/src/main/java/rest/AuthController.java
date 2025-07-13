@@ -48,16 +48,25 @@ public class AuthController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response login(LoginDTO loginDTO) {
         try {
-            // Call login service - it will send verification code if credentials are valid
-            authService.login(loginDTO.getUsername(), loginDTO.getPassword());
+            // Call login service - it now returns Optional<String>
+            // Empty Optional = invalid credentials
+            // Optional with "VERIFICATION_CODE_SENT" = valid credentials, verification code sent
+            Optional<String> result = authService.login(loginDTO.getUsername(), loginDTO.getPassword());
 
-            // If we reach here, credentials were valid and verification code was sent
-            return Response.ok(Collections.singletonMap("message", "Verification code sent to your email. Please check your inbox.")).build();
+            if (result.isPresent() && "VERIFICATION_CODE_SENT".equals(result.get())) {
+                // Valid credentials, verification code was sent
+                return Response.ok(Collections.singletonMap("message", "Verification code sent to your email. Please check your inbox.")).build();
+            } else {
+                // Invalid credentials (empty Optional)
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity(Collections.singletonMap("error", "Invalid username or password"))
+                        .build();
+            }
 
         } catch (Exception e) {
-            // If login fails due to invalid credentials or other errors
-            return Response.status(Response.Status.UNAUTHORIZED)
-                    .entity(Collections.singletonMap("error", "Invalid username or password"))
+            // If login fails due to other errors
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Collections.singletonMap("error", "Login failed: " + e.getMessage()))
                     .build();
         }
     }
@@ -87,10 +96,11 @@ public class AuthController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response verifyEmail(EmailVerificationDTO verificationDTO) {
-        boolean isVerified = authService.verifyEmail(verificationDTO);
+        Optional<String> tokenOptional = authService.verifyEmail(verificationDTO);
 
-        if (isVerified) {
-            return Response.ok(Collections.singletonMap("message", "Email verified successfully.")).build();
+        if (tokenOptional.isPresent()) {
+            String token = tokenOptional.get();
+            return Response.ok(Collections.singletonMap("token", token)).build();
         } else {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Collections.singletonMap("error", "Invalid email or verification code."))
@@ -122,4 +132,3 @@ public class AuthController {
     }
 
     }
-

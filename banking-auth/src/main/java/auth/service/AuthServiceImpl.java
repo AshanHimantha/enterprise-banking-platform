@@ -12,6 +12,7 @@ import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import java.nio.charset.StandardCharsets;
@@ -124,9 +125,9 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public boolean verifyEmail(EmailVerificationDTO verificationDTO) {
+    public Optional<String> verifyEmail(EmailVerificationDTO verificationDTO) {
         if (verificationDTO == null || verificationDTO.getEmail() == null || verificationDTO.getCode() == null) {
-            return false;
+            return Optional.empty();
         }
 
         // Find the user by their email
@@ -139,7 +140,10 @@ public class AuthServiceImpl implements AuthService {
 
             // Check if the user is already verified
             if (user.isEmailVerified()) {
-                return true; // Already verified, nothing to do.
+                // Already verified, generate and return JWT token
+                String token = tokenProvider.createToken(user);
+                System.out.println("Email already verified for user: " + user.getUsername() + ", returning token");
+                return Optional.of(token);
             }
 
             // Check if the provided code matches the one in the database
@@ -150,18 +154,20 @@ public class AuthServiceImpl implements AuthService {
                 user.setEmailVerificationCode(null); // Clear the code so it can't be reused
                 em.merge(user); // Use merge to update the existing entity
 
-                System.out.println("Email successfully verified for user: " + user.getUsername());
-                return true;
+                // Generate and return JWT token for successful email verification
+                String token = tokenProvider.createToken(user);
+                System.out.println("Email successfully verified for user: " + user.getUsername() + ", returning token");
+                return Optional.of(token);
             }
         } catch (Exception e) {
             // User not found
             System.err.println("Email verification failed: User not found for email " + verificationDTO.getEmail());
-            return false;
+            return Optional.empty();
         }
 
         // Codes did not match
         System.err.println("Email verification failed: Invalid code for email " + verificationDTO.getEmail());
-        return false;
+        return Optional.empty();
     }
 
     private void validateRequiredFields(RegisterDTO registerDTO) {
@@ -275,35 +281,44 @@ public class AuthServiceImpl implements AuthService {
             return Optional.empty();
         }
 
-        // Try to find user by username or email
+        // Try to find user by username or email (case-insensitive)
         TypedQuery<User> query = em.createQuery(
-            "SELECT u FROM User u WHERE u.username = :identifier OR u.email = :identifier",
+            "SELECT u FROM User u WHERE LOWER(u.username) = LOWER(:identifier) OR LOWER(u.email) = LOWER(:identifier)",
             User.class
         );
         query.setParameter("identifier", usernameOrEmail.trim());
 
         try {
             User user = query.getSingleResult();
-            if (user.getPassword().equals(hashPassword(password))) {
-                // Generate login verification code
-                String loginVerificationCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-                user.setEmailVerificationCode(loginVerificationCode);
-                em.merge(user);
 
-                // Send login verification email
-                emailService.sendLoginVerificationCode(user.getEmail(), user.getUsername(), loginVerificationCode);
-
-                System.out.println("Login verification code sent to " + user.getEmail());
-
-                // Return empty for now - user needs to verify with code first
-                // In a real implementation, you'd return a temporary token or session ID
-                return Optional.empty();
+            // Validate the password - BOTH user existence AND password must be correct
+            if (!user.getPassword().equals(hashPassword(password))) {
+                System.err.println("Invalid credentials for: " + usernameOrEmail);
+                return Optional.empty(); // Return same response as user not found
             }
+
+            // Both user exists AND password is correct - proceed with verification
+            // Generate login verification code
+            String loginVerificationCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+            user.setEmailVerificationCode(loginVerificationCode);
+            em.merge(user);
+
+            // Send login verification email
+            emailService.sendLoginVerificationCode(user.getEmail(), user.getUsername(), loginVerificationCode);
+
+            System.out.println("Login verification code sent to " + user.getEmail());
+
+            // Return success indicator - verification code was sent
+            return Optional.of("VERIFICATION_CODE_SENT");
+
+        } catch (NoResultException e) {
+            // User not found - return same response as invalid password for security
+            System.err.println("Invalid credentials for: " + usernameOrEmail);
+            return Optional.empty();
         } catch (Exception e) {
             System.err.println("Login failed for user " + usernameOrEmail + ": " + e.getMessage());
             return Optional.empty();
         }
-        return Optional.empty();
     }
 
     @Override
@@ -316,9 +331,9 @@ public class AuthServiceImpl implements AuthService {
             return Optional.empty();
         }
 
-        // Try to find user by username or email
+        // Try to find user by username or email (case-insensitive)
         TypedQuery<User> query = em.createQuery(
-            "SELECT u FROM User u WHERE u.username = :identifier OR u.email = :identifier",
+            "SELECT u FROM User u WHERE LOWER(u.username) = LOWER(:identifier) OR LOWER(u.email) = LOWER(:identifier)",
             User.class
         );
         query.setParameter("identifier", usernameOrEmail.trim());
