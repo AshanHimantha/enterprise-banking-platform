@@ -33,7 +33,7 @@ public class User implements Serializable {
     private String username;
     @Column(nullable = false)
     private String password;
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String passcode;
 
     private boolean emailVerified = false;

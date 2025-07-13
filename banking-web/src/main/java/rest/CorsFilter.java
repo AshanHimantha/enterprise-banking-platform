@@ -5,9 +5,20 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import javax.crypto.SecretKey;
+import java.util.Date;
 
 @WebFilter("/*")
 public class CorsFilter implements Filter {
+
+    // Use the same secret key as in TokenProvider
+    private final String secretKey = "iTPBvXP8RrKllw1vSqfUB5pZl5ul6t9foiVCIjtZGQe2r7w4";
+    private final SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -41,6 +52,49 @@ public class CorsFilter implements Filter {
         if ("OPTIONS".equalsIgnoreCase(httpRequest.getMethod())) {
             httpResponse.setStatus(HttpServletResponse.SC_OK);
             return;
+        }
+
+        // Check for JWT token expiration
+        String authHeader = httpRequest.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+
+            try {
+                // Parse the token to check expiration
+                Claims claims = Jwts.parser()
+                        .verifyWith(key)
+                        .build()
+                        .parseSignedClaims(token)
+                        .getPayload();
+
+                // Check if token is expired
+                Date expiration = claims.getExpiration();
+                if (expiration != null && expiration.before(new Date())) {
+                    // Token is expired, send 401
+                    httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    httpResponse.setContentType("application/json");
+                    httpResponse.getWriter().write("{\"error\":\"JWT token has expired\",\"code\":\"TOKEN_EXPIRED\"}");
+                    return;
+                }
+            } catch (ExpiredJwtException e) {
+                // Token is expired
+                httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                httpResponse.setContentType("application/json");
+                httpResponse.getWriter().write("{\"error\":\"JWT token has expired\",\"code\":\"TOKEN_EXPIRED\"}");
+                return;
+            } catch (JwtException e) {
+                // Invalid token (malformed, signature invalid, etc.)
+                httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                httpResponse.setContentType("application/json");
+                httpResponse.getWriter().write("{\"error\":\"Invalid JWT token\",\"code\":\"INVALID_TOKEN\"}");
+                return;
+            } catch (Exception e) {
+                // Other token-related errors
+                httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                httpResponse.setContentType("application/json");
+                httpResponse.getWriter().write("{\"error\":\"Token validation failed\",\"code\":\"TOKEN_VALIDATION_FAILED\"}");
+                return;
+            }
         }
 
         // Continue with the filter chain
