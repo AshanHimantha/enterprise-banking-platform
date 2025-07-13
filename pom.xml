@@ -15,6 +15,7 @@
         <module>banking-kyc</module>
         <module>banking-web</module>
         <module>banking-auth</module>
+        <module>banking-transactions</module>
 
     </modules>
 

@@ -25,9 +25,7 @@ public class UserServiceImpl implements UserService {
 
     // Method to get the webapp's real path for avatar uploads (similar to KYC service)
     private String getWebappAvatarDirectory() {
-        // This will resolve to the actual webapp directory in the deployed application
-        // For development: typically target/banking-web-1.0/assets/avatars/
-        // For production: the deployed WAR's assets/avatars/ directory
+
         String webappPath = System.getProperty("com.sun.aas.instanceRoot");
         if (webappPath != null) {
             // Payara/GlassFish specific path
@@ -85,7 +83,7 @@ public class UserServiceImpl implements UserService {
             String savedAvatarPath = saveAvatarFile(avatarStream, fileName, username);
 
             // Update user's profile picture URL (store relative path for web access)
-            String avatarUrl = "/assets/avatars/" + Paths.get(savedAvatarPath).getFileName().toString();
+            String avatarUrl =   Paths.get(savedAvatarPath).getFileName().toString();
             user.setProfilePictureUrl(avatarUrl);
             em.merge(user);
 
@@ -161,7 +159,6 @@ public class UserServiceImpl implements UserService {
     // Helper method to delete existing avatar file
     private void deleteExistingAvatar(String avatarUrl) {
         try {
-            // Extract filename from URL (assuming format is /assets/avatars/filename)
             String fileName = avatarUrl.substring(avatarUrl.lastIndexOf('/') + 1);
             Path avatarPath = Paths.get(getWebappAvatarDirectory(), fileName);
             Files.deleteIfExists(avatarPath);

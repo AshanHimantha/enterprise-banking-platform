@@ -67,5 +67,5 @@ public class Account implements Serializable {
         this.accountType = accountType;
     }
 
-    // Getters and Setters...
+
 }

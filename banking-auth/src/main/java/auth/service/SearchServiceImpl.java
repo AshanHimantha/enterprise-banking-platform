@@ -9,10 +9,11 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import java.util.List;
-import java.util.stream.Collectors; // Import Collectors
+import java.util.stream.Collectors;
 
 @Stateless
-@RolesAllowed({"ADMIN", "EMPLOYEE, CUSTOMER"})
+// CORRECTED: The roles should be in separate quotes.
+@RolesAllowed({"ADMIN", "EMPLOYEE", "CUSTOMER"})
 public class SearchServiceImpl implements SearchService {
 
     @PersistenceContext(unitName = "bankingPU")
@@ -20,15 +21,13 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public List<UserSearchResultDTO> searchUsers(String searchTerm) {
-        if (searchTerm == null ) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) { // Also check for empty string
             return java.util.Collections.emptyList();
         }
 
-        String searchPattern = searchTerm.trim().toLowerCase() + "%";
+        // Using LIKE with a wildcard at the beginning and end can be better for a "contains" search
+        String searchPattern = "%" + searchTerm.trim().toLowerCase() + "%";
 
-        // Step 1: Query for the full Account entities.
-        // A JOIN FETCH is used to eagerly load the associated User object
-        // in a single database trip, which is very efficient.
         String jpql = "SELECT a FROM Account a JOIN FETCH a.owner u " +
                 "WHERE LOWER(u.username) LIKE :searchPattern " +
                 "OR LOWER(u.email) LIKE :searchPattern " +
@@ -41,17 +40,29 @@ public class SearchServiceImpl implements SearchService {
         List<Account> results = query.getResultList();
 
         // Step 2: Manually map the results to your DTO in Java.
-        // This is more reliable than a JPQL constructor expression.
         return results.stream()
-                .map(account -> new UserSearchResultDTO(
-                        account.getOwner().getEmail(),
-                        account.getOwner().getFirstName(),
-                        account.getOwner().getLastName(),
-                        account.getOwner().getUsername(),
-                        account.getOwner().getProfilePictureUrl(),
-                        account.getAccountNumber(),
-                        account.getAccountType()
-                ))
+                .map(account -> {
+                    String rawUrl = account.getOwner().getProfilePictureUrl();
+                    // *** THIS IS THE NEW LOGIC ***
+                    String fullApiUrl = null;
+                    if (rawUrl != null && !rawUrl.isEmpty()) {
+                        // Extract just the filename from the stored path
+                        String filename = rawUrl.substring(rawUrl.lastIndexOf('/') + 1);
+                        // Prepend the API path to create a full, callable URL
+                        fullApiUrl = "/api/user/profile/avatar/image/" + filename;
+                    }
+
+                    // Create the DTO with the newly constructed URL
+                    return new UserSearchResultDTO(
+                            account.getOwner().getEmail(),
+                            account.getOwner().getFirstName(),
+                            account.getOwner().getLastName(),
+                            account.getOwner().getUsername(),
+                            fullApiUrl, // Use the constructed URL
+                            account.getAccountNumber(),
+                            account.getAccountType()
+                    );
+                })
                 .collect(Collectors.toList());
     }
 }

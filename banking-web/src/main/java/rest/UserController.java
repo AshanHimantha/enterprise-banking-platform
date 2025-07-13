@@ -244,6 +244,7 @@ public class UserController {
 
 
 
+
     // Helper methods
     private String extractFilename(String fullPath) {
         if (fullPath == null) return null;
