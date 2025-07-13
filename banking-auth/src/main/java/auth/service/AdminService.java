@@ -5,5 +5,5 @@ import jakarta.ejb.Local;
 
 @Local
 public interface AdminService {
-    void approveKycAndAssignRole(String username);
+    void approveKycAndAssignRole(String username, String reviewNotes, String reviewedBy);
 }

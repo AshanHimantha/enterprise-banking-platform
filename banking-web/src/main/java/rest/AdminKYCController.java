@@ -28,14 +28,26 @@ public class AdminKYCController {
 
     @POST
     @Path("/users/{username}/approve-kyc")
+    @Consumes(MediaType.APPLICATION_JSON)
     @RolesAllowed({"ADMIN", "EMPLOYEE"}) // Secure the API endpoint
-    public Response approveKyc(@PathParam("username") String username) {
+    public Response approveKyc(@PathParam("username") String username, Map<String, String> request) {
         try {
-            adminService.approveKycAndAssignRole(username);
+            String reviewNotes = request.get("reviewNotes");
+            String reviewedBy = request.get("reviewedBy");
+
+            // Default values if not provided
+            if (reviewNotes == null) {
+                reviewNotes = "";
+            }
+            if (reviewedBy == null) {
+                reviewedBy = "SYSTEM";
+            }
+
+            adminService.approveKycAndAssignRole(username, reviewNotes, reviewedBy);
             return Response.ok(Collections.singletonMap("message", "KYC approved and role assigned for user " + username)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity(Collections.singletonMap("error", "User not found or operation failed."))
+                    .entity(Collections.singletonMap("error", "User not found or operation failed: " + e.getMessage()))
                     .build();
         }
     }
@@ -330,3 +342,4 @@ public class AdminKYCController {
         return pagination;
     }
 }
+

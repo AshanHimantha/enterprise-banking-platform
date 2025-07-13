@@ -10,6 +10,8 @@
     </parent>
 
     <artifactId>banking-accounts</artifactId>
+    <packaging>ejb</packaging>
+
     <dependencies>
         <!-- Jakarta EE for EJB annotations -->
         <dependency>

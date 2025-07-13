@@ -212,9 +212,9 @@ public class KycServiceImpl implements KycService {
             document.getIdBackPhotoPath(),
             document.getSubmittedAt(),
             user.getKycStatus(),
-            user.getKycReviewedBy(),
-            user.getKycReviewedAt(),
-            user.getKycReviewNotes()
+            document.getReviewedBy(),
+            document.getReviewedAt(),
+            document.getReviewNotes()
         );
     }
 }

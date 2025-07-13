@@ -116,6 +116,30 @@ public class KycDocument implements Serializable {
         this.user = user;
     }
 
+    public String getReviewNotes() {
+        return reviewNotes;
+    }
+
+    public void setReviewNotes(String reviewNotes) {
+        this.reviewNotes = reviewNotes;
+    }
+
+    public String getReviewedBy() {
+        return reviewedBy;
+    }
+
+    public void setReviewedBy(String reviewedBy) {
+        this.reviewedBy = reviewedBy;
+    }
+
+    public LocalDateTime getReviewedAt() {
+        return reviewedAt;
+    }
+
+    public void setReviewedAt(LocalDateTime reviewedAt) {
+        this.reviewedAt = reviewedAt;
+    }
+
     // Link back to the user who submitted this document
     @OneToOne
     @JoinColumn(name = "user_id", unique = true, nullable = false)
@@ -149,6 +173,15 @@ public class KycDocument implements Serializable {
 
     @Column(nullable = false)
     private LocalDateTime submittedAt;
+
+    // Review fields
+    @Column(length = 1000)
+    private String reviewNotes;
+
+    @Column(length = 100)
+    private String reviewedBy;
+
+    private LocalDateTime reviewedAt;
 
     // Getters and Setters...
 }
