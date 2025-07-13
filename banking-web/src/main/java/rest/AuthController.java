@@ -51,11 +51,26 @@ public class AuthController {
             // Call login service - it now returns Optional<String>
             // Empty Optional = invalid credentials
             // Optional with "VERIFICATION_CODE_SENT" = valid credentials, verification code sent
+            // Optional with "{\"error\": \"status\"}" = valid credentials but inactive status
             Optional<String> result = authService.login(loginDTO.getUsername(), loginDTO.getPassword());
 
-            if (result.isPresent() && "VERIFICATION_CODE_SENT".equals(result.get())) {
-                // Valid credentials, verification code was sent
-                return Response.ok(Collections.singletonMap("message", "Verification code sent to your email. Please check your inbox.")).build();
+            if (result.isPresent()) {
+                String response = result.get();
+
+                if ("VERIFICATION_CODE_SENT".equals(response)) {
+                    // Valid credentials, verification code was sent
+                    return Response.ok(Collections.singletonMap("message", "Verification code sent to your email. Please check your inbox.")).build();
+                } else if ("INACTIVE".equals(response) || "SUSPENDED".equals(response) || "DEACTIVATED".equals(response)) {
+                    // Valid credentials but user status is not active
+                    return Response.status(Response.Status.FORBIDDEN)
+                            .entity(Collections.singletonMap("error", response))
+                            .build();
+                } else {
+                    // Other response types (if any)
+                    return Response.status(Response.Status.BAD_REQUEST)
+                            .entity(Collections.singletonMap("error", "Unexpected response from login service"))
+                            .build();
+                }
             } else {
                 // Invalid credentials (empty Optional)
                 return Response.status(Response.Status.BAD_REQUEST)

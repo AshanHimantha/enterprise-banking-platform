@@ -3,6 +3,7 @@ package entity;
 
 import enums.AccountLevel;
 import enums.KycStatus;
+import enums.UserStatus;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -52,6 +53,10 @@ public class User implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AccountLevel accountLevel = AccountLevel.BRONZE;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus status = UserStatus.ACTIVE;
 
     private String profilePictureUrl;
 
@@ -202,6 +207,13 @@ public class User implements Serializable {
         this.profilePictureUrl = profilePictureUrl;
     }
 
+    public UserStatus getStatus() {
+        return status;
+    }
 
+    public void setStatus(UserStatus status) {
+        this.status = status;
+    }
 
 }
+

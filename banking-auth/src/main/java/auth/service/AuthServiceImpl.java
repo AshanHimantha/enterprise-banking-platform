@@ -8,6 +8,7 @@ import entity.User;
 import entity.UserRole;
 import enums.AccountLevel;
 import enums.KycStatus;
+import enums.UserStatus;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -297,7 +298,13 @@ public class AuthServiceImpl implements AuthService {
                 return Optional.empty(); // Return same response as user not found
             }
 
-            // Both user exists AND password is correct - proceed with verification
+            // Check if user status is active
+            if (user.getStatus() != UserStatus.ACTIVE) {
+                System.err.println("Login denied for user " + usernameOrEmail + " - User status: " + user.getStatus());
+                return Optional.of(user.getStatus().name()); // Return the status name directly
+            }
+
+            // Both user exists AND password is correct AND user is active - proceed with verification
             // Generate login verification code
             String loginVerificationCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
             user.setEmailVerificationCode(loginVerificationCode);
