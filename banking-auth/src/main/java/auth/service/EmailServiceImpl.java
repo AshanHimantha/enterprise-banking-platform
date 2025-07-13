@@ -541,7 +541,7 @@ public class EmailServiceImpl implements EmailService {
                                     "<strong>Reason for Suspension:</strong><br>" +
                                     reason +
                                 "</div>" +
-                                "<p><strong>Suspended by:</strong> " + adminUsername + "</p>" +
+
                                 "<p><strong>Date:</strong> " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a")) + "</p>" +
                             "</div>" +
                             "<p class=\"message\">" +
@@ -551,7 +551,7 @@ public class EmailServiceImpl implements EmailService {
                             "<div class=\"contact-info\">" +
                                 "📞 <strong>Need to Appeal or Have Questions?</strong><br>" +
                                 "If you believe this suspension is in error or would like to discuss your account status, please contact our customer service team:<br><br>" +
-                                "• Phone: 1-800-ORBIN-BANK<br>" +
+                                "• Phone: +94 701705553<br>" +
                                 "• Email: <span class=\"highlight\">orbinbank@ashanhimantha321.com</span><br>" +
                                 "• Visit any Orbin Bank branch with valid identification" +
                             "</div>" +
@@ -700,7 +700,7 @@ public class EmailServiceImpl implements EmailService {
                             "</p>" +
                             "<div class=\"reactivation-section\">" +
                                 "<div class=\"reactivation-title\">✅ Account Reactivation Details</div>" +
-                                "<p><strong>Reactivated by:</strong> " + adminUsername + "</p>" +
+
                                 "<p><strong>Date:</strong> " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a")) + "</p>" +
                                 "<p><strong>Status:</strong> <span class=\"highlight\">Active</span></p>" +
                             "</div>" +
