@@ -58,7 +58,7 @@ public class AuthController {
                 return Response.ok(Collections.singletonMap("message", "Verification code sent to your email. Please check your inbox.")).build();
             } else {
                 // Invalid credentials (empty Optional)
-                return Response.status(Response.Status.UNAUTHORIZED)
+                return Response.status(Response.Status.BAD_REQUEST)
                         .entity(Collections.singletonMap("error", "Invalid username or password"))
                         .build();
             }
