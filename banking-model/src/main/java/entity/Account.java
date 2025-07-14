@@ -1,9 +1,10 @@
 package entity;
 
+
+import enums.AccountType;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import enums.AccountType;
 
 @Entity
 @Table(name = "account")
@@ -13,13 +14,15 @@ public class Account implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    public Long getId() {
-        return id;
-    }
+    @Column(unique = true, nullable = false)
+    private String accountNumber;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(nullable = false, precision = 19, scale = 6)
+    private BigDecimal balance;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AccountType accountType;
 
     public User getOwner() {
         return owner;
@@ -27,6 +30,14 @@ public class Account implements Serializable {
 
     public void setOwner(User owner) {
         this.owner = owner;
+    }
+
+    public AccountType getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(AccountType accountType) {
+        this.accountType = accountType;
     }
 
     public BigDecimal getBalance() {
@@ -45,28 +56,16 @@ public class Account implements Serializable {
         this.accountNumber = accountNumber;
     }
 
-    @Column(unique = true, nullable = false)
-    private String accountNumber;
+    public Long getId() {
+        return id;
+    }
 
-    @Column(nullable = false)
-    private BigDecimal balance;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AccountType accountType;
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = true)
     private User owner;
-
-
-    public AccountType getAccountType() {
-        return accountType;
-    }
-
-    public void setAccountType(AccountType accountType) {
-        this.accountType = accountType;
-    }
-
 
 }

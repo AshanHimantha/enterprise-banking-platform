@@ -1,5 +1,7 @@
 package entity;
 
+
+import enums.TransactionStatus;
 import enums.TransactionType;
 import jakarta.persistence.*;
 import java.io.Serializable;
@@ -10,70 +12,86 @@ import java.time.LocalDateTime;
 @Table(name = "transaction")
 public class Transaction implements Serializable {
 
-
-    @Column(nullable = false)
-    private BigDecimal amount;
-
-    @Column(nullable = false)
-    private LocalDateTime transactionDate;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TransactionType transactionType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionStatus status; // NEW: Status of the transaction
+
+    @Column(nullable = false)
+    private BigDecimal amount;
+
+    // The account money came FROM. Null for top-ups.
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_account_id", nullable = true) // Now nullable
+    @JoinColumn(name = "from_account_id", nullable = true)
     private Account fromAccount;
 
+    // The account money went TO. Null for some withdrawals/payments.
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "to_account_id", nullable = true) // Now nullable
+    @JoinColumn(name = "to_account_id", nullable = true)
     private Account toAccount;
 
+    @Column(nullable = false)
+    private LocalDateTime transactionDate;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    // System-generated description, e.g., "Transfer to Jane Doe"
+    @Column(length = 255)
+    private String description;
 
-    public Account getFromAccount() {
-        return fromAccount;
-    }
+    // Optional note provided by the user, e.g., "For concert tickets"
+    @Column(length = 255)
+    private String userMemo;
 
-    public void setFromAccount(Account fromAccount) {
-        this.fromAccount = fromAccount;
-    }
+    // Optional but recommended for performance
+    @Column(precision = 19, scale = 4)
+    private BigDecimal runningBalance;
 
-    public LocalDateTime getTransactionDate() {
-        return transactionDate;
-    }
+    // --- Getters and Setters for all fields ---
+    // (Generate these in your IDE)
 
-    public void setTransactionDate(LocalDateTime transactionDate) {
-        this.transactionDate = transactionDate;
-    }
+    // id
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public BigDecimal getAmount() {
-        return amount;
-    }
+    // transactionType
+    public TransactionType getTransactionType() { return transactionType; }
+    public void setTransactionType(TransactionType transactionType) { this.transactionType = transactionType; }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
+    // status
+    public TransactionStatus getStatus() { return status; }
+    public void setStatus(TransactionStatus status) { this.status = status; }
 
-    public Long getId() {
-        return id;
-    }
+    // amount
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    // fromAccount
+    public Account getFromAccount() { return fromAccount; }
+    public void setFromAccount(Account fromAccount) { this.fromAccount = fromAccount; }
 
-    public Account getToAccount() {
-        return toAccount;
-    }
+    // toAccount
+    public Account getToAccount() { return toAccount; }
+    public void setToAccount(Account toAccount) { this.toAccount = toAccount; }
 
-    public void setToAccount(Account toAccount) {
-        this.toAccount = toAccount;
-    }
+    // transactionDate
+    public LocalDateTime getTransactionDate() { return transactionDate; }
+    public void setTransactionDate(LocalDateTime transactionDate) { this.transactionDate = transactionDate; }
 
+    // description
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
+    // userMemo
+    public String getUserMemo() { return userMemo; }
+    public void setUserMemo(String userMemo) { this.userMemo = userMemo; }
 
+    // runningBalance
+    public BigDecimal getRunningBalance() { return runningBalance; }
+    public void setRunningBalance(BigDecimal runningBalance) { this.runningBalance = runningBalance; }
 }
