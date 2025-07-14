@@ -1,8 +1,10 @@
 package service;
 
 import entity.Account;
+import entity.DashboardAccountDTO;
 import entity.User;
 import enums.AccountType;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -10,7 +12,10 @@ import jakarta.persistence.TypedQuery;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Stateless
 public class AccountServiceImpl implements AccountService { // Implements the interface
@@ -33,15 +38,35 @@ public class AccountServiceImpl implements AccountService { // Implements the in
         System.out.println("Successfully created user: " + user.getUsername() + " and account: " + account.getAccountNumber());
     }
 
-    /**
-     * Generates a human-readable account number in the format: BANK-YYYY-XXXXXX
-     * Example: BANK-2025-123456
-     *
-     * Format breakdown:
-     * - BANK: Bank identifier prefix
-     * - YYYY: Current year
-     * - XXXXXX: 6-digit sequential number
-     */
+
+    @Override
+    @RolesAllowed("CUSTOMER")
+    public List<DashboardAccountDTO> findAccountsByUsername(String username) {
+        TypedQuery<Account> query = em.createQuery(
+                "SELECT a FROM Account a WHERE a.owner.username = :username ORDER BY a.accountType", Account.class);
+        query.setParameter("username", username);
+
+        return query.getResultList().stream()
+                .map(DashboardAccountDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @RolesAllowed("CUSTOMER")
+    public Optional<DashboardAccountDTO> findAccountByNumberForUser(String accountNumber, String username) {
+        TypedQuery<Account> query = em.createQuery(
+                "SELECT a FROM Account a WHERE a.accountNumber = :accountNumber AND a.owner.username = :username", Account.class);
+        query.setParameter("accountNumber", accountNumber);
+        query.setParameter("username", username);
+
+        try {
+            Account account = query.getSingleResult();
+            return Optional.of(new DashboardAccountDTO(account));
+        } catch (jakarta.persistence.NoResultException e) {
+            return Optional.empty();
+        }
+    }
+
     public String generateHumanReadableAccountNumber() {
         String bankPrefix = "ORBIN";
         String currentYear = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy"));
@@ -60,10 +85,7 @@ public class AccountServiceImpl implements AccountService { // Implements the in
         return accountNumber;
     }
 
-    /**
-     * Generates a 6-digit sequential number starting from 100001
-     * This ensures account numbers are easy to read and share
-     */
+
     private String generateSequentialNumber() {
         // Get the count of existing accounts and add base number
         long accountCount = getAccountCount();
