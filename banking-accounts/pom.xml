@@ -26,6 +26,12 @@
             <version>1.0</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-transactions</artifactId>
+            <version>1.0</version>
+            <scope>compile</scope>
+        </dependency>
 
     </dependencies>
 

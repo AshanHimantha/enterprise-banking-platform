@@ -18,6 +18,7 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -81,26 +82,55 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @RolesAllowed("CUSTOMER")
-    public List<TransactionDTO> getTransactionHistory(String username, String accountNumber) {
-        // Security check
+    public List<TransactionDTO> getTransactionHistory(
+            String username, String accountNumber, LocalDate startDate, LocalDate endDate,
+            TransactionType transactionType, int pageNumber, int pageSize) {
+
+        // Security check remains the same
         Account account = findAccountByNumber(accountNumber);
         if (account.getOwner() == null || !account.getOwner().getUsername().equals(username)) {
-            throw new SecurityException("Authorization error: You do not have permission to view this account's history.");
+            throw new SecurityException("Authorization error: You do not own this account.");
         }
 
-        // Query for transactions
-        TypedQuery<Transaction> query = em.createQuery(
-                "SELECT t FROM Transaction t " +
-                        "WHERE t.fromAccount.id = :accountId OR t.toAccount.id = :accountId " +
-                        "ORDER BY t.transactionDate DESC", Transaction.class);
-        query.setParameter("accountId", account.getId());
-        query.setMaxResults(50);
+        // --- Dynamic Query Building ---
+        StringBuilder jpql = new StringBuilder(
+                "SELECT t FROM Transaction t WHERE (t.fromAccount.id = :accountId OR t.toAccount.id = :accountId)");
+
+        // Use a Map to hold the query parameters
+        java.util.Map<String, Object> parameters = new java.util.HashMap<>();
+        parameters.put("accountId", account.getId());
+
+        if (startDate != null) {
+            jpql.append(" AND t.transactionDate >= :startDate");
+            parameters.put("startDate", startDate.atStartOfDay());
+        }
+        if (endDate != null) {
+            jpql.append(" AND t.transactionDate <= :endDate");
+            parameters.put("endDate", endDate.plusDays(1).atStartOfDay()); // Include the whole end day
+        }
+        if (transactionType != null) {
+            jpql.append(" AND t.transactionType = :transactionType");
+            parameters.put("transactionType", transactionType);
+        }
+
+        jpql.append(" ORDER BY t.transactionDate DESC");
+
+        // --- Create and Execute Query with Pagination ---
+        TypedQuery<Transaction> query = em.createQuery(jpql.toString(), Transaction.class);
+
+        // Set all the parameters we collected
+        for (java.util.Map.Entry<String, Object> entry : parameters.entrySet()) {
+            query.setParameter(entry.getKey(), entry.getValue());
+        }
+
+        // Apply pagination
+        query.setFirstResult((pageNumber - 1) * pageSize); // Calculate the starting row
+        query.setMaxResults(pageSize); // Set the number of rows to retrieve
 
         return query.getResultList().stream()
                 .map(TransactionDTO::new)
                 .collect(Collectors.toList());
     }
-
     // --- Helper Methods ---
 
     private User findUserByUsername(String username) {

@@ -3,6 +3,7 @@ package rest;
 
 import dto.TransactionDTO;
 import dto.TransactionRequestDTO;
+import enums.TransactionType;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.EJB;
 import jakarta.ws.rs.*;
@@ -12,6 +13,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import service.TransactionService;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,30 +49,36 @@ public class TransactionController {
         }
     }
 
-    /**
-     * Endpoint to get the transaction history for a specific account.
-     */
     @GET
     @Path("/history/{accountNumber}")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed("CUSTOMER")
-    public Response getHistory(@PathParam("accountNumber") String accountNumber, @Context SecurityContext securityContext) {
+    public Response getHistory(
+            @PathParam("accountNumber") String accountNumber,
+            @Context SecurityContext securityContext,
+            // Use @QueryParam to read optional parameters from the URL
+            @QueryParam("startDate") String startDateStr,
+            @QueryParam("endDate") String endDateStr,
+            @QueryParam("type") TransactionType transactionType,
+            @QueryParam("page") @DefaultValue("1") int page, // Default to page 1
+            @QueryParam("size") @DefaultValue("20") int size) { // Default to 20 items per page
+
         try {
             String username = securityContext.getUserPrincipal().getName();
 
-            // Call the service to get the history
-            List<TransactionDTO> history = transactionService.getTransactionHistory(username, accountNumber);
+            // Parse date strings into LocalDate objects
+            LocalDate startDate = (startDateStr != null) ? LocalDate.parse(startDateStr) : null;
+            LocalDate endDate = (endDateStr != null) ? LocalDate.parse(endDateStr) : null;
+
+            List<TransactionDTO> history = transactionService.getTransactionHistory(
+                    username, accountNumber, startDate, endDate, transactionType, page, size);
 
             return Response.ok(history).build();
-        } catch (SecurityException e) {
-            // This is thrown if the user tries to access an account they don't own
-            return Response.status(Response.Status.FORBIDDEN)
-                    .entity(Collections.singletonMap("error", e.getMessage()))
-                    .build();
         } catch (Exception e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(Collections.singletonMap("error", e.getMessage()))
-                    .build();
+            System.out.println("Error fetching transaction history: " + e.getMessage());
         }
+
+
+        return null;
     }
-}
+    }
