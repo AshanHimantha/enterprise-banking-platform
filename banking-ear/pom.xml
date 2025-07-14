@@ -88,9 +88,7 @@
                     <version>10</version> <!-- Jakarta EE version -->
                     <defaultLibBundleDir>lib</defaultLibBundleDir>
                     <modules>
-                        <!-- Core model should be available first -->
 
-                        <!-- Auth module should be deployed early since other modules depend on it -->
                         <ejbModule>
                             <groupId>com.ashanhimantha.ee</groupId>
                             <artifactId>banking-auth</artifactId>
@@ -130,6 +128,9 @@
                         </security-role>
                         <security-role>
                             <role-name>NONE</role-name>
+                        </security-role>
+                        <security-role>
+                            <role-name>SYSTEM</role-name>
                         </security-role>
                     </security>
                 </configuration>

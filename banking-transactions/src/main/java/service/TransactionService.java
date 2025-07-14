@@ -6,6 +6,7 @@ import dto.TransactionRequestDTO;
 import enums.TransactionType;
 import jakarta.ejb.Local;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -24,4 +25,5 @@ public interface TransactionService {
             int pageNumber,
             int pageSize
     );
+    void performSystemTransfer(Long fromAccountId, Long toAccountId, BigDecimal amount, String memo);
 }

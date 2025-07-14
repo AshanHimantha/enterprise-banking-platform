@@ -81,6 +81,38 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void performSystemTransfer(Long fromAccountId, Long toAccountId, BigDecimal amount, String memo) {
+
+        Account fromAccount = findAndLockAccountById(fromAccountId);
+        Account toAccount = findAndLockAccountById(toAccountId);
+
+        if (fromAccount.getOwner().getStatus() != UserStatus.ACTIVE) {
+            throw new IllegalStateException("User account is not active.");
+        }
+        if (fromAccount.getBalance().compareTo(amount) < 0) {
+            throw new IllegalStateException("Insufficient funds.");
+        }
+
+        BigDecimal newFromBalance = fromAccount.getBalance().subtract(amount);
+        fromAccount.setBalance(newFromBalance);
+        BigDecimal newToBalance = toAccount.getBalance().add(amount);
+        toAccount.setBalance(newToBalance);
+
+        Transaction transactionLog = new Transaction();
+        transactionLog.setTransactionType(TransactionType.TRANSFER);
+        transactionLog.setStatus(TransactionStatus.COMPLETED);
+        transactionLog.setFromAccount(fromAccount);
+        transactionLog.setToAccount(toAccount);
+        transactionLog.setAmount(amount);
+        transactionLog.setTransactionDate(LocalDateTime.now());
+        transactionLog.setDescription("Scheduled Transfer to " + toAccount.getOwner().getFirstName());
+        transactionLog.setUserMemo(memo);
+        transactionLog.setRunningBalance(newFromBalance);
+        em.persist(transactionLog);
+    }
+
+    @Override
     @RolesAllowed("CUSTOMER")
     public List<TransactionDTO> getTransactionHistory(
             String username, String accountNumber, LocalDate startDate, LocalDate endDate,
@@ -130,6 +162,14 @@ public class TransactionServiceImpl implements TransactionService {
         return query.getResultList().stream()
                 .map(TransactionDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    private Account findAndLockAccountById(Long accountId) {
+        try {
+            return em.find(Account.class, accountId, LockModeType.PESSIMISTIC_WRITE);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Account with ID '" + accountId + "' not found.");
+        }
     }
     // --- Helper Methods ---
 
