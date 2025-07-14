@@ -10,6 +10,27 @@
     </parent>
 
     <artifactId>banking-transactions</artifactId>
+    <packaging>ejb</packaging>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-web-api</artifactId>
+            <version>10.0.0</version>
+        </dependency>
+
+        <!-- Core model module should be included first -->
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-model</artifactId>
+            <version>1.0</version>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
+
+
+
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>

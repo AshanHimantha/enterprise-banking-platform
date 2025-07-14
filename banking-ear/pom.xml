@@ -45,6 +45,14 @@
             <type>ejb</type>
         </dependency>
 
+        <!-- Add the banking-transactions module as a dependency -->
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-transactions</artifactId>
+            <version>1.0</version>
+            <type>ejb</type>
+        </dependency>
+
         <!-- Add the banking-web module as a dependency -->
         <dependency>
             <groupId>com.ashanhimantha.ee</groupId>

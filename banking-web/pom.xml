@@ -49,6 +49,12 @@
             <artifactId>jersey-media-multipart</artifactId>
             <version>3.1.5</version>
         </dependency>
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-transactions</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
