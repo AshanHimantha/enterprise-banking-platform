@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService {
         String webappPath = System.getProperty("com.sun.aas.instanceRoot");
         if (webappPath != null) {
             // Payara/GlassFish specific path
-            return webappPath + "/applications/banking-ear/com.ashanhimantha.ee-banking-web-1.0_war/assets/avatars/";
+            return webappPath + "/applications/banking-ear/assets/avatars/";
         } else {
             // Fallback to a local directory
             return "C:\\banking_uploads\\avatars\\";

@@ -56,8 +56,9 @@ public class Account implements Serializable {
     private AccountType accountType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private User owner;
+
 
     public AccountType getAccountType() {
         return accountType;

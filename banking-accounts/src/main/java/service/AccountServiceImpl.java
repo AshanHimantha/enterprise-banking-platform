@@ -42,7 +42,7 @@ public class AccountServiceImpl implements AccountService { // Implements the in
      * - YYYY: Current year
      * - XXXXXX: 6-digit sequential number
      */
-    private String generateHumanReadableAccountNumber() {
+    public String generateHumanReadableAccountNumber() {
         String bankPrefix = "ORBIN";
         String currentYear = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy"));
 

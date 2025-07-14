@@ -200,7 +200,7 @@ public class UserController {
             String webappPath = System.getProperty("com.sun.aas.instanceRoot");
             String avatarDir;
             if (webappPath != null) {
-                avatarDir = webappPath + "/applications/banking-ear/com.ashanhimantha.ee-banking-web-1.0_war/assets/avatars/";
+                avatarDir = webappPath + "/applications/banking-ear/assets/avatars/";
             } else {
                 avatarDir = "C:\\banking_uploads\\avatars\\";
             }

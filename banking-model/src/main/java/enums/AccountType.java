@@ -2,5 +2,6 @@ package enums;
 
 public enum AccountType {
     SAVING,
-    FIXED
+    FIXED,
+    BILLER
 }

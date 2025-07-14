@@ -16,6 +16,7 @@
         <module>banking-web</module>
         <module>banking-auth</module>
         <module>banking-transactions</module>
+        <module>banking-billers</module>
 
     </modules>
 

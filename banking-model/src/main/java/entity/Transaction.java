@@ -1,5 +1,6 @@
 package entity;
 
+import enums.TransactionType;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -16,12 +17,16 @@ public class Transaction implements Serializable {
     @Column(nullable = false)
     private LocalDateTime transactionDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionType transactionType;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_account_id")
+    @JoinColumn(name = "from_account_id", nullable = true) // Now nullable
     private Account fromAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "to_account_id", nullable = false)
+    @JoinColumn(name = "to_account_id", nullable = true) // Now nullable
     private Account toAccount;
 
 

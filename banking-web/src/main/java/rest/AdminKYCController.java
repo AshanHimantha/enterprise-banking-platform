@@ -177,7 +177,7 @@ public class AdminKYCController {
             String webappPath = System.getProperty("com.sun.aas.instanceRoot");
             String kycDir;
             if (webappPath != null) {
-                kycDir = webappPath + "/applications/banking-ear/com.ashanhimantha.ee-banking-web-1.0_war/assets/kyc/";
+                kycDir = webappPath + "/applications/banking-ear/assets/kyc/";
             } else {
                 kycDir = "C:\\banking_uploads\\kyc_images\\";
             }
@@ -265,7 +265,7 @@ public class AdminKYCController {
             String webappPath = System.getProperty("com.sun.aas.instanceRoot");
             String kycDir;
             if (webappPath != null) {
-                kycDir = webappPath + "/applications/banking-ear/com.ashanhimantha.ee-banking-web-1.0_war/assets/kyc/";
+                kycDir = webappPath + "/applications/banking-ear/assets/kyc/";
             } else {
                 kycDir = "C:\\banking_uploads\\kyc_images\\";
             }

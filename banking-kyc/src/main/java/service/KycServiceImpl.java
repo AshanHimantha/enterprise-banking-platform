@@ -36,7 +36,7 @@ public class KycServiceImpl implements KycService {
         String webappPath = System.getProperty("com.sun.aas.instanceRoot");
         if (webappPath != null) {
             // Payara/GlassFish specific path
-            return webappPath + "/applications/banking-ear/com.ashanhimantha.ee-banking-web-1.0_war/assets/kyc/";
+            return webappPath + "/applications/banking-ear/assets/kyc/";
         } else {
             // Fallback to a local directory
             return "C:\\banking_uploads\\kyc_images\\";

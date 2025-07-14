@@ -9,11 +9,11 @@
         <version>1.0</version>
     </parent>
 
-    <artifactId>banking-accounts</artifactId>
+    <artifactId>banking-billers</artifactId>
     <packaging>ejb</packaging>
 
     <dependencies>
-        <!-- Jakarta EE for EJB annotations -->
+        <!-- For EJB and JPA annotations -->
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-api</artifactId>
@@ -26,6 +26,14 @@
             <version>1.0</version>
             <type>jar</type>
         </dependency>
+
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-accounts</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+
 
     </dependencies>
 
