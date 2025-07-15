@@ -1,6 +1,7 @@
 package entity;
 
 
+
 import enums.AccountType;
 import jakarta.persistence.*;
 import java.io.Serializable;
@@ -17,47 +18,28 @@ public class Account implements Serializable {
     @Column(unique = true, nullable = false)
     private String accountNumber;
 
-    @Column(nullable = false, precision = 19, scale = 6)
+    @Column(nullable = false, precision = 19, scale = 4) // scale 4 is good for balances
     private BigDecimal balance;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AccountType accountType;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = true)
+    private User owner;
+
+    // *** THIS IS THE MISSING FIELD THAT NEEDS TO BE ADDED ***
     @Column(name = "accrued_interest", nullable = false, precision = 19, scale = 8)
     private BigDecimal accruedInterest = BigDecimal.ZERO;
 
-    // --- Add Getter and Setter for the new field ---
-    public BigDecimal getAccruedInterest() {
-        return accruedInterest;
+
+    public Long getId() {
+        return id;
     }
 
-    public void setAccruedInterest(BigDecimal accruedInterest) {
-        this.accruedInterest = accruedInterest;
-    }
-
-    public User getOwner() {
-        return owner;
-    }
-
-    public void setOwner(User owner) {
-        this.owner = owner;
-    }
-
-    public AccountType getAccountType() {
-        return accountType;
-    }
-
-    public void setAccountType(AccountType accountType) {
-        this.accountType = accountType;
-    }
-
-    public BigDecimal getBalance() {
-        return balance;
-    }
-
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getAccountNumber() {
@@ -68,16 +50,36 @@ public class Account implements Serializable {
         this.accountNumber = accountNumber;
     }
 
-    public Long getId() {
-        return id;
+    public BigDecimal getBalance() {
+        return balance;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = true)
-    private User owner;
+    public AccountType getAccountType() {
+        return accountType;
+    }
 
+    public void setAccountType(AccountType accountType) {
+        this.accountType = accountType;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
+
+    // *** ADD GETTER AND SETTER FOR THE NEW FIELD ***
+    public BigDecimal getAccruedInterest() {
+        return accruedInterest;
+    }
+
+    public void setAccruedInterest(BigDecimal accruedInterest) {
+        this.accruedInterest = accruedInterest;
+    }
 }
