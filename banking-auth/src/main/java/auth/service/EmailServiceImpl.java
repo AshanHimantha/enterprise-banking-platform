@@ -2,15 +2,17 @@ package auth.service;
 
 
 
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
 import jakarta.annotation.Resource;
 import jakarta.ejb.Asynchronous;
 import jakarta.ejb.Stateless;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Session;
-import jakarta.mail.Transport;
+import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
 
 @Stateless
 public class EmailServiceImpl implements EmailService {
@@ -578,6 +580,40 @@ public class EmailServiceImpl implements EmailService {
         } catch (MessagingException e) {
             System.err.println("Error sending account suspension email: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    @Asynchronous
+    public void sendEmailWithAttachment(String recipientEmail, String subject, String body, byte[] attachmentData, String attachmentName, String attachmentType) {
+        try {
+            Message message = new MimeMessage(mailSession);
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
+            message.setSubject(subject);
+
+            // 1. Create the body part for the HTML text
+            MimeBodyPart textPart = new MimeBodyPart();
+            textPart.setContent(body, "text/html; charset=utf-8");
+
+            // 2. Create the body part for the PDF attachment
+            MimeBodyPart attachmentPart = new MimeBodyPart();
+            DataSource source = new ByteArrayDataSource(attachmentData, attachmentType);
+            attachmentPart.setDataHandler(new DataHandler(source));
+            attachmentPart.setFileName(attachmentName);
+
+            // 3. Combine them into a multipart message
+            Multipart multipart = new MimeMultipart();
+            multipart.addBodyPart(textPart);
+            multipart.addBodyPart(attachmentPart);
+
+            // 4. Set the multipart content on the main message
+            message.setContent(multipart);
+
+            Transport.send(message);
+            System.out.println("Email with attachment sent successfully to " + recipientEmail);
+
+        } catch (MessagingException e) {
+            throw new RuntimeException("Error sending email with attachment", e);
         }
     }
 

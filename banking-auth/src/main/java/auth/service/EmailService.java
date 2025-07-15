@@ -8,4 +8,6 @@ public interface EmailService {
     void sendLoginVerificationCode(String recipientEmail, String username, String verificationCode);
     void sendAccountSuspensionEmail(String recipientEmail, String username, String reason, String adminUsername);
     void sendAccountReactivationEmail(String recipientEmail, String username, String adminUsername);
+    // Add this new method
+    void sendEmailWithAttachment(String recipientEmail, String subject, String body, byte[] attachmentData, String attachmentName, String attachmentType);
 }

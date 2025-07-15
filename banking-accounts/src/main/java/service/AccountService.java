@@ -2,6 +2,7 @@ package service;
 
 
 import dto.DashboardAccountDTO;
+import entity.Account;
 import entity.User;
 import enums.AccountType;
 import jakarta.ejb.Local; // Use @Local for access within the same application
@@ -15,4 +16,6 @@ public interface AccountService {
     String generateHumanReadableAccountNumber();
     List<DashboardAccountDTO> findAccountsByUsername(String username);
     Optional<DashboardAccountDTO> findAccountByNumberForUser(String accountNumber, String username);
+    void verifyAccountOwnership(String username, String accountNumber);
+    Account findAccountByNumber(String accountNumber);
 }

@@ -67,6 +67,42 @@ public class AccountServiceImpl implements AccountService { // Implements the in
         }
     }
 
+    @Override
+    public void verifyAccountOwnership(String username, String accountNumber) {
+        // Basic validation for the input parameters.
+        if (username == null || username.trim().isEmpty() || accountNumber == null || accountNumber.trim().isEmpty()) {
+            throw new SecurityException("Authentication details are missing or invalid.");
+        }
+
+
+        TypedQuery<Long> query = em.createQuery(
+                "SELECT COUNT(a) FROM Account a WHERE a.accountNumber = :accountNumber AND a.owner.username = :username", Long.class);
+
+        query.setParameter("accountNumber", accountNumber);
+        query.setParameter("username", username);
+
+
+        if (query.getSingleResult() == 0) {
+            throw new SecurityException("Access denied to the requested resource.");
+        }
+
+
+    }
+
+    @Override
+    public Account findAccountByNumber(String accountNumber) {
+        try {
+            // Use JOIN FETCH to efficiently load the owner in the same query.
+            TypedQuery<Account> query = em.createQuery(
+                    "SELECT a FROM Account a JOIN FETCH a.owner WHERE a.accountNumber = :accountNumber", Account.class);
+            query.setParameter("accountNumber", accountNumber);
+            return query.getSingleResult();
+        } catch (jakarta.persistence.NoResultException e) {
+            // Return null if no account is found with that number.
+            return null;
+        }
+    }
+
     public String generateHumanReadableAccountNumber() {
         String bankPrefix = "ORBIN";
         String currentYear = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy"));
