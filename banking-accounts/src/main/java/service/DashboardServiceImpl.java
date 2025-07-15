@@ -2,7 +2,7 @@ package service;
 
 import dto.DashboardSummaryDTO;
 import dto.TransactionDTO;
-import entity.DashboardAccountDTO;
+import dto.DashboardAccountDTO;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import java.util.List;

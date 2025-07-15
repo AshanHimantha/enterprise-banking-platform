@@ -1,7 +1,5 @@
 package dto;
 
-import entity.DashboardAccountDTO;
-
 import java.util.List;
 
 /**

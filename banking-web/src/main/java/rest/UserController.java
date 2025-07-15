@@ -2,7 +2,7 @@ package rest;
 
 
 import auth.service.UserService;
-import entity.ProfileUpdateDTO;
+import dto.ProfileUpdateDTO;
 import entity.User;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.EJB;

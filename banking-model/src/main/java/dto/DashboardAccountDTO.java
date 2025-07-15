@@ -1,4 +1,5 @@
-package entity;
+package dto;
+import entity.Account;
 import enums.AccountType;
 import java.math.BigDecimal;
 

@@ -1,6 +1,7 @@
 package service;
 
 
+import dto.BillPaymentRequestDTO;
 import dto.TransactionDTO;
 import dto.TransactionRequestDTO;
 import enums.TransactionType;
@@ -25,5 +26,6 @@ public interface TransactionService {
             int pageNumber,
             int pageSize
     );
+    void payBill(String username, BillPaymentRequestDTO request);
     void performSystemTransfer(Long fromAccountId, Long toAccountId, BigDecimal amount, String memo);
 }

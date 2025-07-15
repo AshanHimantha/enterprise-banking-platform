@@ -1,6 +1,6 @@
 package auth.service;
 
-import entity.ProfileUpdateDTO;
+import dto.ProfileUpdateDTO;
 import entity.User;
 import jakarta.ejb.Local;
 import java.io.InputStream;

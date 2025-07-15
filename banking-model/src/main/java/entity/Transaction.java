@@ -24,7 +24,7 @@ public class Transaction implements Serializable {
     @Column(nullable = false)
     private TransactionStatus status; // NEW: Status of the transaction
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal amount;
 
     // The account money came FROM. Null for top-ups.

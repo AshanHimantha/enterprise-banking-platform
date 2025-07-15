@@ -1,7 +1,7 @@
 package service;
 
 import entity.Account;
-import entity.DashboardAccountDTO;
+import dto.DashboardAccountDTO;
 import entity.User;
 import enums.AccountType;
 import jakarta.annotation.security.RolesAllowed;

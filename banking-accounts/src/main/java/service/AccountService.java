@@ -1,7 +1,7 @@
 package service;
 
 
-import entity.DashboardAccountDTO;
+import dto.DashboardAccountDTO;
 import entity.User;
 import enums.AccountType;
 import jakarta.ejb.Local; // Use @Local for access within the same application

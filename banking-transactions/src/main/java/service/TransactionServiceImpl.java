@@ -1,10 +1,13 @@
 package service;
 
+import dto.BillPaymentRequestDTO;
 import dto.TransactionDTO;
 import dto.TransactionRequestDTO;
 import entity.Account;
+import entity.Biller;
 import entity.Transaction;
 import entity.User;
+import enums.BillerStatus;
 import enums.TransactionStatus;
 import enums.TransactionType;
 import enums.UserStatus;
@@ -110,6 +113,68 @@ public class TransactionServiceImpl implements TransactionService {
         transactionLog.setUserMemo(memo);
         transactionLog.setRunningBalance(newFromBalance);
         em.persist(transactionLog);
+    }
+
+    @Override
+    @RolesAllowed("CUSTOMER")
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void payBill(String username, BillPaymentRequestDTO request) {
+        // 1. Find the user making the request
+        User user = findUserByUsername(username);
+
+        // 2. Find and lock accounts for the transaction
+        Account fromAccount = findAndLockAccount(request.getFromAccountNumber());
+
+        Biller biller = findBillerById(request.getBillerId());
+        Account toBillerAccount = findAndLockAccount(biller.getInternalAccount().getAccountNumber());
+        BigDecimal paymentAmount = request.getAmount();
+
+        // 3. Perform Validations
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new IllegalStateException("Your account is not active.");
+        }
+        if (!fromAccount.getOwner().equals(user)) {
+            throw new SecurityException("Authorization error: You do not own the source account.");
+        }
+        if (biller.getStatus() != BillerStatus.ACTIVE) {
+            throw new IllegalStateException("This biller is not currently active.");
+        }
+        if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Payment amount must be positive.");
+        }
+        if (fromAccount.getBalance().compareTo(request.getAmount()) < 0) {
+            throw new IllegalStateException("Insufficient funds.");
+        }
+
+        // 4. Perform debit from user and credit to biller's internal account
+        BigDecimal newFromBalance = fromAccount.getBalance().subtract(paymentAmount);
+        fromAccount.setBalance(newFromBalance);
+
+        BigDecimal newToBalance = toBillerAccount.getBalance().add(paymentAmount);
+        toBillerAccount.setBalance(newToBalance);
+
+        // 5. Create the transaction log
+        Transaction log = new Transaction();
+        log.setTransactionType(TransactionType.BILL_PAYMENT);
+        log.setStatus(TransactionStatus.COMPLETED);
+        log.setFromAccount(fromAccount);
+        log.setToAccount(toBillerAccount);
+        log.setAmount(request.getAmount());
+        log.setTransactionDate(LocalDateTime.now());
+        log.setDescription("Bill payment to " + biller.getBillerName());
+        log.setUserMemo("Ref: " + request.getBillerReferenceNumber() + " - " + request.getUserMemo());
+        log.setRunningBalance(fromAccount.getBalance());
+
+        em.persist(log);
+    }
+
+    // You will need to add this helper method
+    private Biller findBillerById(Long billerId) {
+        Biller biller = em.find(Biller.class, billerId);
+        if (biller == null) {
+            throw new IllegalArgumentException("Biller with ID " + billerId + " not found.");
+        }
+        return biller;
     }
 
     @Override
