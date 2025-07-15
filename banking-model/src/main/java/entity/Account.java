@@ -24,6 +24,18 @@ public class Account implements Serializable {
     @Column(nullable = false)
     private AccountType accountType;
 
+    @Column(name = "accrued_interest", nullable = false, precision = 19, scale = 8)
+    private BigDecimal accruedInterest = BigDecimal.ZERO;
+
+    // --- Add Getter and Setter for the new field ---
+    public BigDecimal getAccruedInterest() {
+        return accruedInterest;
+    }
+
+    public void setAccruedInterest(BigDecimal accruedInterest) {
+        this.accruedInterest = accruedInterest;
+    }
+
     public User getOwner() {
         return owner;
     }

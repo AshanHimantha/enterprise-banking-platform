@@ -17,6 +17,7 @@
         <module>banking-auth</module>
         <module>banking-transactions</module>
         <module>banking-billers</module>
+        <module>banking-interest</module>
 
     </modules>
 

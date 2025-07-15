@@ -8,31 +8,16 @@
 
         <jta-data-source>jdbc/bankingDB</jta-data-source>
 
+
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
 
         <properties>
-            <!-- JPA Standard Schema Generation Properties -->
-            <property name="jakarta.persistence.schema-generation.database.action" value="create"/>
-            <property name="jakarta.persistence.schema-generation.create-source" value="metadata"/>
-            <property name="jakarta.persistence.schema-generation.drop-source" value="metadata"/>
-            
-            <!-- Hibernate-specific properties (fallback) -->
+
             <property name="hibernate.hbm2ddl.auto" value="update"/>
-            
-            <!-- Database connection and dialect -->
+            <property name="jakarta.persistence.schema-generation.database.action" value="create"/>
             <property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect"/>
-            
-            <!-- Enable detailed logging for troubleshooting -->
             <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.format_sql" value="true"/>
-            <property name="hibernate.use_sql_comments" value="true"/>
-            
-            <!-- Entity scanning and validation -->
-            <property name="hibernate.archive.autodetection" value="class"/>
-            <property name="hibernate.validator.autoregister_listeners" value="false"/>
-            
-            <!-- Connection pool settings for better stability -->
-            <property name="hibernate.connection.provider_disables_autocommit" value="true"/>
         </properties>
 
     </persistence-unit>
