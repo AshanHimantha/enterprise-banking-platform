@@ -37,7 +37,7 @@ public class PaymentScheduler {
      * This method is automatically invoked by the EJB container.
      * Runs every day at 3:00 AM Colombo time.
      */
-    @Schedule(hour = "4", minute = "31", second = "0", persistent = true, timezone = "Asia/Colombo")
+    @Schedule(hour = "5", minute = "14", second = "0", persistent = true, timezone = "Asia/Colombo")
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW) // Each scheduler run is its own new transaction
     public void executeDuePayments() {
         System.out.println("SCHEDULER: Starting job run...");
@@ -81,7 +81,7 @@ public class PaymentScheduler {
                 payment.getFromAccount().getId(),
                 payment.getToAccount().getId(),
                 payment.getAmount(),
-                "Recurring: " + (payment.getUserMemo() != null ? payment.getUserMemo() : "")
+                "Recurring transfer to " + payment.getToAccount().getAccountNumber()
         );
     }
 
@@ -113,7 +113,7 @@ public class PaymentScheduler {
         log.setAmount(payment.getAmount());
         log.setTransactionDate(LocalDateTime.now());
         log.setDescription("Scheduled bill payment to " + payment.getBiller().getBillerName());
-        log.setUserMemo("Ref: " + payment.getBillerReferenceNumber() + " - " + payment.getUserMemo());
+        log.setUserMemo("Ref: " + payment.getBillerReferenceNumber());
         log.setRunningBalance(fromAccount.getBalance());
 
         em.persist(log);

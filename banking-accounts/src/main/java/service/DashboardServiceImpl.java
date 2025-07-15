@@ -21,9 +21,7 @@ public class DashboardServiceImpl implements DashboardService {
         // 1. Get the user's accounts
         List<DashboardAccountDTO> userAccounts = accountService.findAccountsByUsername(username);
 
-        // 2. Get the user's most recent transactions
-        // For simplicity, we get history from the first account if it exists.
-        // A more advanced version would aggregate transactions from ALL accounts.
+
         List<TransactionDTO> recentTransactions = java.util.Collections.emptyList();
         if (userAccounts != null && !userAccounts.isEmpty()) {
             String primaryAccountNumber = userAccounts.get(0).getAccountNumber();

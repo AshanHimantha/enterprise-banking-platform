@@ -71,9 +71,8 @@ public class AccountServiceImpl implements AccountService { // Implements the in
         String bankPrefix = "ORBIN";
         String currentYear = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy"));
 
-        // Generate a 6-digit sequential number
-        String sequentialNumber = generateSequentialNumber();
 
+        String sequentialNumber = generateSequentialNumber();
         String accountNumber = bankPrefix + "-" + currentYear + "-" + sequentialNumber;
 
         // Ensure uniqueness by checking if account number already exists
