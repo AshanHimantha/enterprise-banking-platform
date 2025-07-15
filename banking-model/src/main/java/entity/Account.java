@@ -29,10 +29,6 @@ public class Account implements Serializable {
     @JoinColumn(name = "user_id", nullable = true)
     private User owner;
 
-    // *** THIS IS THE MISSING FIELD THAT NEEDS TO BE ADDED ***
-    @Column(name = "accrued_interest", nullable = false, precision = 19, scale = 8)
-    private BigDecimal accruedInterest = BigDecimal.ZERO;
-
 
     public Long getId() {
         return id;
@@ -74,12 +70,4 @@ public class Account implements Serializable {
         this.owner = owner;
     }
 
-    // *** ADD GETTER AND SETTER FOR THE NEW FIELD ***
-    public BigDecimal getAccruedInterest() {
-        return accruedInterest;
-    }
-
-    public void setAccruedInterest(BigDecimal accruedInterest) {
-        this.accruedInterest = accruedInterest;
-    }
 }

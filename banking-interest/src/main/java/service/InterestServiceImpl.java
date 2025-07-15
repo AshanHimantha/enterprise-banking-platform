@@ -1,10 +1,9 @@
 package service;
 
-import entity.Account;
-import entity.InterestAccrual;
-import entity.InterestRate;
-import entity.InterestRateId;
+import entity.*;
 import enums.AccountType;
+import enums.TransactionStatus;
+import enums.TransactionType;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
@@ -14,6 +13,7 @@ import jakarta.persistence.TypedQuery;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +57,6 @@ public class InterestServiceImpl implements InterestService {
                 accrualRecord.setAnnualRateUsed(annualRate);
                 accrualRecord.setPaidOut(false);
 
-                account.setAccruedInterest(account.getAccruedInterest().add(dailyInterest));
 
                 em.persist(accrualRecord); // Save the new daily record
             }
@@ -80,8 +79,23 @@ public class InterestServiceImpl implements InterestService {
             if (payoutAmount.compareTo(BigDecimal.ZERO) > 0) {
                 // 2. Add interest to the main balance
                 account.setBalance(account.getBalance().add(payoutAmount));
+
+
                 em.merge(account);
                 System.out.println("INTEREST SERVICE: Updated balance for account " + account.getAccountNumber() + " to " + account.getBalance());
+
+                Transaction log = new Transaction();
+                log.setTransactionType(TransactionType.INTEREST_PAYOUT);
+                log.setStatus(TransactionStatus.COMPLETED);
+                log.setFromAccount(null); // Interest comes from the bank, not another account.
+                log.setToAccount(account); // It is credited TO the user's account.
+                log.setAmount(payoutAmount);
+                log.setDescription("Monthly Interest Payout");
+                log.setUserMemo(null); // No user memo for a system transaction.
+                log.setTransactionDate(LocalDateTime.now());
+                log.setRunningBalance(account.getBalance()); // Store the new balance after the payout.
+
+                em.persist(log); // Save the new transaction record to the database.
 
                 markAccrualsAsPaidFor(account);
             }
