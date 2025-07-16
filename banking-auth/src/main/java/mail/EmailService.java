@@ -1,4 +1,4 @@
-package auth.service;
+package mail;
 
 import jakarta.ejb.Local;
 

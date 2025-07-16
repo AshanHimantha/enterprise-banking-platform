@@ -12,6 +12,8 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import mail.EmailService;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

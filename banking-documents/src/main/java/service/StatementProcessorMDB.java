@@ -1,7 +1,6 @@
 package service;
 
 
-import auth.service.EmailService;
 import entity.Account;
 import jakarta.ejb.ActivationConfigProperty;
 import jakarta.ejb.EJB;
@@ -9,6 +8,8 @@ import jakarta.ejb.MessageDriven;
 import jakarta.jms.Message;
 import jakarta.jms.MessageListener;
 import jakarta.jms.TextMessage;
+import mail.EmailService;
+
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 
@@ -75,10 +76,7 @@ public class StatementProcessorMDB implements MessageListener {
                             "<h3>Dear %s,</h3>" +
                                     "<p>Please find your account statement for the period of %s to %s attached.</p>" +
                                     "<p>The password to open the document is the last 4 digits of your account number Bank Account .</p>" +
-                                    "<p>Example :</p>" +
-                                    "<p>If your Account Number Is ORBIN-2025-123456</p>" +
-                                    "<p>Your Password will be : 3456</p>" +
-                                    "<br/><p>Thank you,</p><p>Orbin Bank</p>",
+                                    "<p>Example: <br> If your Account Number Is ORBIN-2025-123456 <br> Your Password will be : 3456 <br> Thank you,Orbin Bank</p>",
                             account.getOwner().getFirstName(),
                             startDate.toString(),
                             endDate.toString(),

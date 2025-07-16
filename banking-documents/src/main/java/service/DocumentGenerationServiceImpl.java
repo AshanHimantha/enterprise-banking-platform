@@ -5,6 +5,7 @@ import entity.Account;
 import entity.KycDocument;
 import entity.Transaction;
 import entity.User;
+import enums.AccountType;
 import enums.TransactionType;
 import com.itextpdf.html2pdf.ConverterProperties;
 import com.itextpdf.html2pdf.HtmlConverter;
@@ -48,6 +49,13 @@ public class DocumentGenerationServiceImpl implements DocumentGenerationService 
         Account account = findAccountByNumber(accountNumber);
         if (account == null) {
             throw new IllegalArgumentException("Account with number " + accountNumber + " not found.");
+        }
+
+        if (account.getAccountType() != AccountType.SAVING && account.getAccountType() != AccountType.CURRENT) {
+            System.err.println("Statement generation blocked for account " + accountNumber + " due to invalid account type: " + account.getAccountType());
+            // Return an empty stream to indicate no statement should be generated.
+            // Or you could throw an exception. Returning empty is safer for a batch process.
+            return new ByteArrayOutputStream();
         }
         KycDocument kycDocument = findKycDocumentForUser(account.getOwner());
         List<Transaction> transactions = findTransactionsForStatement(account, startDate, endDate);

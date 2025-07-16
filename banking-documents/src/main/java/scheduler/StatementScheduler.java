@@ -2,6 +2,7 @@ package scheduler;
 
 
 import entity.Account;
+import enums.AccountType;
 import jakarta.annotation.Resource;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Schedule;
@@ -58,10 +59,25 @@ public class StatementScheduler {
     }
 
     private List<Account> findAccountsWithActivity(LocalDate startDate, LocalDate endDate) {
-        // This query finds distinct accounts that appear as either from or to in the transaction log
-        return em.createQuery(
-                        "SELECT DISTINCT a FROM Transaction t JOIN t.fromAccount a WHERE t.transactionDate >= :start AND t.transactionDate < :end " +
-                                "UNION SELECT DISTINCT b FROM Transaction t JOIN t.toAccount b WHERE t.transactionDate >= :start AND t.transactionDate < :end", Account.class)
+        // We will join the two conditions:
+        // 1. The account must have had transactions in the period.
+        // 2. The account's type must be SAVING or CURRENT.
+        String jpql = "SELECT DISTINCT a FROM Transaction t " +
+                "JOIN t.fromAccount a " + // Can be from or to
+                "WHERE t.transactionDate >= :start AND t.transactionDate < :end " +
+                "AND a.accountType IN (:saving, :current)";
+
+        // A UNION query is complex. A simpler way is to query accounts first.
+        // Let's refactor for clarity.
+
+        String simplerJpql = "SELECT a FROM Account a WHERE a.accountType IN (:saving, :current) " +
+                "AND EXISTS (SELECT 1 FROM Transaction t " +
+                "WHERE (t.fromAccount = a OR t.toAccount = a) " +
+                "AND t.transactionDate >= :start AND t.transactionDate < :end)";
+
+        return em.createQuery(simplerJpql, Account.class)
+                .setParameter("saving", AccountType.SAVING)
+                .setParameter("current", AccountType.CURRENT)
                 .setParameter("start", startDate.atStartOfDay())
                 .setParameter("end", endDate.plusDays(1).atStartOfDay())
                 .getResultList();
