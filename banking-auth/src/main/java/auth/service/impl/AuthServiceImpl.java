@@ -1,5 +1,6 @@
-package auth.service;
+package auth.service.impl;
 
+import auth.service.AuthService;
 import auth.util.TokenProvider;
 import dto.EmailVerificationDTO;
 import dto.RegisterDTO;

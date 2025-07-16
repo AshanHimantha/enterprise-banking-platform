@@ -1,6 +1,7 @@
-package auth.service;
+package auth.service.impl;
 
 
+import auth.service.SearchService;
 import dto.UserSearchResultDTO;
 import entity.Account;
 import jakarta.annotation.security.RolesAllowed;

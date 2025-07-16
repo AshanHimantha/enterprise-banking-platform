@@ -1,4 +1,4 @@
-package service;
+package service.impl;
 
 import entity.Account;
 import dto.DashboardAccountDTO;
@@ -9,6 +9,8 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import service.AccountService;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

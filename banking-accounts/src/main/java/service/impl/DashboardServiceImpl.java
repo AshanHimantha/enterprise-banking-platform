@@ -1,10 +1,14 @@
-package service;
+package service.impl;
 
 import dto.DashboardSummaryDTO;
 import dto.TransactionDTO;
 import dto.DashboardAccountDTO;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
+import service.AccountService;
+import service.DashboardService;
+import service.TransactionService;
+
 import java.util.List;
 
 @Stateless

@@ -1,6 +1,7 @@
-package auth.service;
+package auth.service.impl;
 
 
+import auth.service.UserService;
 import dto.ProfileUpdateDTO;
 import entity.User;
 import jakarta.ejb.Stateless;
