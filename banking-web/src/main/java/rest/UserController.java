@@ -142,7 +142,6 @@ public class UserController {
                 return createErrorResponse(Response.Status.NOT_FOUND, "User profile not found");
             }
 
-            // Create profile response with avatar URL
             Map<String, Object> profileData = new HashMap<>();
             profileData.put("id", user.getId());
             profileData.put("username", user.getUsername());
@@ -159,17 +158,13 @@ public class UserController {
             profileData.put("registeredDate", user.getRegisteredDate());
             profileData.put("lastLoginDate", user.getLastLoginDate());
 
-            // Add avatar URL similar to getAvatarImageUrl method
-            String avatarUrl = user.getProfilePictureUrl();
-            if (avatarUrl != null) {
-                String filename = extractFilename(avatarUrl);
-                if (filename != null) {
-                    profileData.put("avatarUrl", "/api/user/profile/avatar/image/" + filename);
-                    profileData.put("hasAvatar", true);
-                } else {
-                    profileData.put("avatarUrl", null);
-                    profileData.put("hasAvatar", false);
-                }
+            // Only store filename in DB, so check for empty or null
+            String avatarFilename = user.getProfilePictureUrl();
+            System.out.println("Avatar URL: " + avatarFilename);
+
+            if (avatarFilename != null && !avatarFilename.trim().isEmpty()) {
+                profileData.put("avatarUrl", "/api/user/profile/avatar/image/" + avatarFilename);
+                profileData.put("hasAvatar", true);
             } else {
                 profileData.put("avatarUrl", null);
                 profileData.put("hasAvatar", false);

@@ -27,7 +27,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Stateless
-@RolesAllowed("ADMIN")
+
 public class BillerServiceImpl implements BilllerService {
 
     @PersistenceContext(unitName = "bankingPU")
@@ -36,6 +36,7 @@ public class BillerServiceImpl implements BilllerService {
     @EJB
     private AccountService accountNumberGenerator;
 
+    @RolesAllowed("ADMIN")
     @Override
     public BillerDTO createBiller(String billerName, BillerCategory category, InputStream logoStream, String fileName) {
         if (em.createQuery("SELECT COUNT(b) FROM Biller b WHERE b.billerName = :name", Long.class)
@@ -68,7 +69,7 @@ public class BillerServiceImpl implements BilllerService {
 
         return new BillerDTO(biller);
     }
-
+    @RolesAllowed({"ADMIN", "EMPLOYEE", "CUSTOMER"})
     @Override
     public List<BillerDTO> getAllBillers() {
         return em.createQuery("SELECT b FROM Biller b ORDER BY b.billerName", Biller.class)
@@ -77,6 +78,7 @@ public class BillerServiceImpl implements BilllerService {
                 .collect(Collectors.toList());
     }
 
+    @RolesAllowed({"ADMIN", "EMPLOYEE"})
     @Override
     public void updateBillerStatus(Long billerId, BillerStatus newStatus) {
         Biller biller = em.find(Biller.class, billerId);

@@ -14,7 +14,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.List;
 
 @Path("/search")
-@RolesAllowed({"ADMIN", "EMPLOYEE"})
+@RolesAllowed({"ADMIN", "EMPLOYEE","CUSTOMER"})
 public class SearchController {
 
     @EJB
@@ -27,6 +27,8 @@ public class SearchController {
             @QueryParam("email") String email,
             @QueryParam("username") String username,
             @QueryParam("accountno") String accountNumber) {
+
+
 
         // Determine which search term to use. We'll prioritize them.
         String searchTerm = null;

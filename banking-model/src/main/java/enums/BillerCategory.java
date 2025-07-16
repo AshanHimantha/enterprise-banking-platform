@@ -7,5 +7,8 @@ public enum BillerCategory {
     FINANCE,        // Credit Card, Loans
     EDUCATION,
     GOVERNMENT,
-    OTHER
+    CHARITY,
+    WATER,
+    OTHER// ISPs
+
 }

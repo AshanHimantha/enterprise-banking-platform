@@ -1,19 +1,19 @@
 package rest;
 
 import dto.BillPaymentRequestDTO;
+import dto.BillerDTO;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.EJB;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import service.BilllerService;
 import service.TransactionService;
 
 import java.util.Collections;
+import java.util.List;
 
 @Path("/bills")
 @RolesAllowed("CUSTOMER")
@@ -21,6 +21,9 @@ public class BillPaymentController {
 
     @EJB
     private TransactionService transactionService;
+
+    @EJB
+    private BilllerService billlerService;
 
     @POST
     @Path("/pay")
@@ -37,4 +40,13 @@ public class BillPaymentController {
                     .build();
         }
     }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listAllBillers() {
+        List<BillerDTO> billers = billlerService.getAllBillers();
+        return Response.ok(billers).build();
+    }
+
+
 }
