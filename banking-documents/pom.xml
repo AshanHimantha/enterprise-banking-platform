@@ -40,6 +40,12 @@
 
         <dependency>
             <groupId>com.itextpdf</groupId>
+            <artifactId>html2pdf</artifactId>
+            <version>4.0.5</version> <!-- Use a version compatible with your iText core version -->
+        </dependency>
+
+        <dependency>
+            <groupId>com.itextpdf</groupId>
             <artifactId>itext7-core</artifactId>
             <version>7.2.5</version> <!-- Use the 'itext7-core' artifact -->
             <type>pom</type>

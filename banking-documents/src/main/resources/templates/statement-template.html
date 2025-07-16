@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bank Statement</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+    body {
+      padding: 2rem;
+      color: #1f2937;
+    }
+    .container {
+      max-width: 960px;
+      margin: auto;
+    }
+    .header-section, .footer-section {
+      border-top: 4px solid #f97316;
+      padding-top: 1rem;
+    }
+    .layout-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: none;
+      margin-bottom: 1.5rem;
+    }
+    .layout-table td {
+      border: none;
+      padding: 0;
+      vertical-align: top;
+    }
+    .logo-cell {
+      width: 70%;
+    }
+    .address-cell {
+      width: 30%;
+      text-align: right;
+    }
+    .name {
+      color: #f97316;
+      font-weight: bolder;
+    }
+    .subtext {
+      font-size: 0.875rem;
+      color: #4b5563;
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+    .section-title {
+      font-size: 1rem;
+      font-weight: bold;
+      padding-bottom: 0.25rem;
+      border-bottom: 1px solid #d1d5db;
+      margin-bottom: 0.75rem;
+    }
+    .summary {
+      border: 1px solid #d1d5db;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    .summary-row {
+      display: block; /* Use block for layout inside summary */
+      justify-content: space-between;
+      font-size: 0.875rem;
+      padding: 0.25rem 0;
+      border-bottom: 1px solid #e5e7eb;
+      overflow: auto; /* Clear floats */
+    }
+    .summary-row span:first-child { float: left; }
+    .summary-row span:last-child { float: right; }
+    .summary-row-total {
+      border-top: 2px solid #9ca3af;
+      font-weight: bold;
+    }
+    .transactions-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+      margin-bottom: 2rem;
+    }
+    .transactions-table th, .transactions-table td {
+      border: 1px solid #d1d5db;
+      padding: 0.75rem;
+      text-align: left;
+    }
+    .transactions-table th {
+      background-color: #f3f4f6;
+      font-weight: bold;
+    }
+    .transactions-table tr:nth-child(even) {
+      background-color: #f9fafb;
+    }
+    .footer-section .info {
+      font-size: 0.75rem;
+      color: #4b5563;
+      line-height: 1.4;
+      margin-bottom: 1rem;
+    }
+    .footer-section .legal {
+      text-align: center;
+      border-top: 1px solid #d1d5db;
+      padding-top: 1rem;
+      font-size: 0.75rem;
+    }
+    .credit { color: #15803d; }
+    .debit { color: #b91c1c; }
+    .text-right { text-align: right; }
+    .font-mono { font-family: monospace; }
+    .text-center { text-align: center; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header-section">
+    <table class="layout-table">
+      <tr>
+        <td class="logo-cell">
+          <img src="orbinw1.png" alt="Orbin Bank Logo" width="280px" />
+        </td>
+        <td class="address-cell subtext">
+          <p>26 Mawathagama</p>
+          <p>Kurunegala, 60060</p>
+          <p>Phone: +94 70 1705553</p>
+        </td>
+      </tr>
+    </table>
+    <div class="section-title">ACCOUNT STATEMENT</div>
+    <div class="subtext">Statement Period: {{statement_period}}</div>
+  </div>
+
+  <table class="layout-table">
+    <tr>
+      <td style="width: 50%; padding-right: 2rem;">
+        <div class="section-title">ACCOUNT HOLDER</div>
+        <div class="subtext">
+          <strong>{{customer_name}}</strong><br />
+          {{customer_address}}
+        </div>
+      </td>
+      <td style="width: 50%;">
+        <div class="section-title">ACCOUNT DETAILS</div>
+        <div class="subtext">
+          Account Number: <span class="font-mono">{{account_number}}</span><br />
+          Account Type: {{account_type}}<br />
+          Statement Date: {{statement_date}}
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="summary">
+    <div class="text-center section-title">ACCOUNT SUMMARY</div>
+    <div class="summary-row"><span>Beginning Balance ({{beginning_balance_date}}):</span><span class="font-mono">{{beginning_balance}}</span></div>
+    <div class="summary-row"><span>Total Deposits:</span><span class="font-mono credit">{{total_deposits}}</span></div>
+    <div class="summary-row"><span>Total Withdrawals:</span><span class="font-mono debit">{{total_withdrawals}}</span></div>
+    <div class="summary-row"><span>Interest Earned:</span><span class="font-mono credit">{{interest_earned}}</span></div>
+    <div class="summary-row summary-row-total"><span>Ending Balance ({{ending_balance_date}}):</span><span class="font-mono">{{ending_balance}}</span></div>
+  </div>
+
+  <div>
+    <div class="section-title">TRANSACTION DETAILS</div>
+    <table class="transactions-table">
+      <thead>
+      <tr>
+        <th style="width: 10%;">DATE</th>
+        <th style="width: 40%;">DESCRIPTION</th>
+        <th style="width: 15%;">REFERENCE</th>
+        <th style="width: 15%;" class="text-right">AMOUNT</th>
+        <th style="width: 20%;" class="text-right">BALANCE</th>
+      </tr>
+      </thead>
+      <tbody>
+      <!-- This placeholder will be replaced by the Java code with <tr><td>...</td></tr> rows -->
+      {{transaction_rows}}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer-section">
+    <table class="layout-table">
+      <tr>
+        <td class="logo-cell">
+          <img src="orbinw1.png" alt="Orbin Bank Logo" width="180px" />
+        </td>
+        <td class="address-cell subtext">
+
+        </td>
+      </tr>
+    </table>
+
+    <div class="info">
+      <p><strong>IMPORTANT NOTICES:</strong></p>
+      <p>• Please examine this statement carefully and report any errors within 60 days.</p>
+      <p>• Direct all inquiries to Customer Service at +94 70 1705553 or visit www.orbin.ashanhimantha.com</p>
+      <p>• This statement is generated electronically and is valid without signature.</p>
+    </div>
+
+    <div class="legal">
+      <span class="name">ORBIN</span> BANK • 26 Mawathagama, Kurunegala, 60060<br />
+      Customer Service: +94 70 1705553 • Online Banking: www.orbin.ashanhimantha.com
+    </div>
+  </div>
+</div>
+</body>
+</html>
