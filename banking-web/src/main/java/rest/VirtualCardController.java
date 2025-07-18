@@ -1,10 +1,7 @@
 package rest;
 
-import dto.RevealRequestDTO;
-import dto.UnmaskedVirtualCardDTO;
+import dto.*;
 import service.VirtualCardService;
-import dto.CreateVirtualCardDTO;
-import dto.VirtualCardDTO;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.EJB;
 import jakarta.ws.rs.*;
@@ -12,7 +9,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -25,42 +21,8 @@ public class VirtualCardController {
     @EJB
     private VirtualCardService virtualCardService;
 
-    // --- DTOs defined as static inner classes for simplicity and co-location ---
 
-    /** DTO for the request body to update a card's PIN. */
-    public static class PinChangeDTO {
-        private String currentPassword;
-        private String newPin;
 
-        public String getCurrentPassword() {
-            return currentPassword;
-        }
-        public void setCurrentPassword(String currentPassword) {
-            this.currentPassword = currentPassword;
-        }
-        public String getNewPin() {
-            return newPin;
-        }
-        public void setNewPin(String newPin) {
-            this.newPin = newPin;
-        }
-    }
-
-    /** DTO for the request body to update a card's spending limit. */
-    public static class SpendingLimitDTO {
-        private BigDecimal newLimit;
-
-        public BigDecimal getNewLimit() {
-            return newLimit;
-        }
-        public void setNewLimit(BigDecimal newLimit) {
-            this.newLimit = newLimit;
-        }
-    }
-
-    /**
-     * Endpoint to create a new virtual card.
-     */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

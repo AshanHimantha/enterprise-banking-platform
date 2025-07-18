@@ -82,14 +82,17 @@ public class VirtualCardServiceImpl implements VirtualCardService {
         return new VirtualCardDTO(newCard);
     }
 
-    @Override
-    public List<VirtualCardDTO> getVirtualCardsForUser(String username) {
-        return em.createQuery("SELECT vc FROM VirtualCard vc WHERE vc.linkedAccount.owner.username = :username ORDER BY vc.createdAt DESC", VirtualCard.class)
-                .setParameter("username", username)
-                .getResultStream()
-                .map(VirtualCardDTO::new)
-                .collect(Collectors.toList());
-    }
+@Override
+public List<VirtualCardDTO> getVirtualCardsForUser(String username) {
+    return em.createQuery(
+            "SELECT vc FROM VirtualCard vc WHERE vc.linkedAccount.owner.username = :username AND vc.status <> :terminatedStatus ORDER BY vc.createdAt DESC",
+            VirtualCard.class)
+            .setParameter("username", username)
+            .setParameter("terminatedStatus", VirtualCardStatus.TERMINATED)
+            .getResultStream()
+            .map(VirtualCardDTO::new)
+            .collect(Collectors.toList());
+}
 
     @Override
     public VirtualCardDTO freezeVirtualCard(String username, Long cardId) {
