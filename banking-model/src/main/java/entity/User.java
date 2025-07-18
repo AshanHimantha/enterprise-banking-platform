@@ -58,6 +58,9 @@ public class User implements Serializable {
     @Column(nullable = false)
     private UserStatus status = UserStatus.ACTIVE;
 
+    @Column(name = "has_claimed_welcome_gift", nullable = false)
+    private boolean hasClaimedWelcomeGift = false; // Default to false
+
     private String profilePictureUrl;
 
     private LocalDateTime registeredDate;
@@ -65,6 +68,14 @@ public class User implements Serializable {
 
     public Long getId() {
         return id;
+    }
+
+    public boolean isHasClaimedWelcomeGift() {
+        return hasClaimedWelcomeGift;
+    }
+
+    public void setHasClaimedWelcomeGift(boolean hasClaimedWelcomeGift) {
+        this.hasClaimedWelcomeGift = hasClaimedWelcomeGift;
     }
 
     public void setId(Long id) {

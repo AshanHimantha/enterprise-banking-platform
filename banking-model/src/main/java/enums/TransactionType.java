@@ -8,4 +8,5 @@ public enum TransactionType {
     INTEREST_PAYOUT,
     WITHDRAWAL,
     DEPOSIT,
+    GIFT,
 }

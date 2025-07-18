@@ -157,6 +157,7 @@ public class UserController {
             profileData.put("status", user.getStatus());
             profileData.put("registeredDate", user.getRegisteredDate());
             profileData.put("lastLoginDate", user.getLastLoginDate());
+            profileData.put("giftClaimed", user.isHasClaimedWelcomeGift());
 
             // Only store filename in DB, so check for empty or null
             String avatarFilename = user.getProfilePictureUrl();
