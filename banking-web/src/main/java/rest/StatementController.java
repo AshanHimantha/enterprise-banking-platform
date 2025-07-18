@@ -2,6 +2,7 @@ package rest;
 
 
 import dto.StatementRequestDTO;
+import jakarta.ws.rs.*;
 import service.AccountService; // Import the service that has our verification method
 import jakarta.annotation.Resource;
 import jakarta.annotation.security.RolesAllowed;
@@ -9,14 +10,14 @@ import jakarta.ejb.EJB;
 import jakarta.inject.Inject;
 import jakarta.jms.JMSContext;
 import jakarta.jms.Queue;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import service.DocumentGenerationService;
+
+import java.io.ByteArrayOutputStream;
+import java.time.LocalDate;
 import java.util.Collections;
 
 /**
@@ -37,6 +38,9 @@ public class StatementController {
     // Inject the AccountService, which contains our ownership verification logic.
     @EJB
     private AccountService accountService;
+
+    @EJB
+    private DocumentGenerationService documentGenerationService;
 
     /**
      * Endpoint for a user to request an account statement for a specific period.
@@ -101,6 +105,69 @@ public class StatementController {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(Collections.singletonMap("error", "Failed to queue the statement request."))
                     .build();
+        }
+    }
+
+    @GET
+    @Path("/{accountNumber}/download")
+    @Produces("application/pdf") // This tells JAX-RS the primary success content type.
+    public Response downloadStatement(
+            @PathParam("accountNumber") String accountNumber,
+            @QueryParam("startDate") String startDateStr,
+            @QueryParam("endDate") String endDateStr,
+            @Context SecurityContext securityContext) {
+
+        // --- 1. Input Validation ---
+        if (startDateStr == null || endDateStr == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("startDate and endDate query parameters are required.")
+                    .type(MediaType.TEXT_PLAIN).build();
+        }
+
+        LocalDate startDate;
+        LocalDate endDate;
+        try {
+            startDate = LocalDate.parse(startDateStr);
+            endDate = LocalDate.parse(endDateStr);
+        } catch (java.time.format.DateTimeParseException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Invalid date format. Please use YYYY-MM-DD.")
+                    .type(MediaType.TEXT_PLAIN).build();
+        }
+
+        // --- 2. Authorization ---
+        String username = securityContext.getUserPrincipal().getName();
+        try {
+            accountService.verifyAccountOwnership(username, accountNumber);
+        } catch (SecurityException e) {
+            return Response.status(Response.Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
+        }
+
+        // --- 3. Generate the PDF ---
+        try {
+            ByteArrayOutputStream pdfStream = documentGenerationService.generateAccountStatementPdf(accountNumber, startDate, endDate);
+
+            if (pdfStream.size() == 0) {
+                return Response.status(Response.Status.OK)
+                        .entity("No transactions found for the selected period. No statement generated.")
+                        .type(MediaType.TEXT_PLAIN).build();
+            }
+
+            // --- 4. Build the Download Response ---
+            String filename = String.format("Statement-%s-%s.pdf", accountNumber, startDate.toString());
+
+            return Response
+                    .ok(pdfStream.toByteArray(), MediaType.APPLICATION_OCTET_STREAM)
+                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                    .build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("An error occurred while generating your statement.")
+                    .type(MediaType.TEXT_PLAIN).build();
         }
     }
 }

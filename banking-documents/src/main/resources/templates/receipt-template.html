@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transaction Receipt</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #fff;
+            color: #1f2937;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            box-sizing: border-box;
+            position: relative;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 32px 40px 120px 40px;
+            border-radius: 0.5rem;
+            min-height: calc(297mm - 120px);
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        .header-section,
+        .footer-section {
+            border-bottom: 4px solid #f97316;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section {
+            border-bottom: none;
+            border-top: 4px solid #f97316;
+            padding-top: 1rem;
+            margin-top: 2rem;
+            margin-bottom: 0;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background: #fff;
+            z-index: 10;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+        }
+
+        .layout-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: none;
+        }
+
+        .layout-table td {
+            border: none;
+            padding: 0;
+            vertical-align: top;
+        }
+
+        .logo-cell {
+            width: 70%;
+        }
+
+        .address-cell {
+            width: 30%;
+            text-align: right;
+        }
+
+        .name {
+            color: #f97316;
+            font-weight: bolder;
+        }
+
+        .subtext {
+            font-size: 0.875rem;
+            color: #4b5563;
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #000;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #d1d5db;
+            margin-bottom: 1.5rem;
+        }
+
+        .transaction-details {
+            border: 1px solid #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background-color: #f9fafb;
+        }
+
+        .detail-row {
+            display: block;
+            /* Use block to handle layout in PDF conversion */
+            overflow: auto;
+            /* Clear floats */
+            font-size: 1rem;
+            padding: 0.75rem;
+            border-bottom: 1px dashed #d1d5db;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #4b5563;
+            float: left;
+        }
+
+        .detail-value {
+            text-align: right;
+            float: right;
+            font-weight: 400;
+        }
+
+        .detail-value.amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .footer-section .info {
+            font-size: 0.75rem;
+            color: #4b5563;
+            line-height: 1.4;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .credit {
+            color: #15803d;
+        }
+
+        .debit {
+            color: #b91c1c;
+        }
+
+        .font-mono {
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="header-section">
+        <table class="layout-table">
+            <tr>
+                <td class="logo-cell">
+                    <img src="orbinw1.png" alt="Orbin Bank Logo" width="270px" />
+                </td>
+                <td class="address-cell subtext">
+                    <p><strong>ORBIN BANK</strong></p>
+                    <p>26 Mawathagama</p>
+                    <p>Kurunegala, 60060</p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section-title">TRANSACTION RECEIPT</div>
+
+    <table class="layout-table">
+        <tr>
+            <td style="width: 50%; padding-right: 2rem;">
+                <div class="subtext">
+                    <strong>FROM:</strong><br />
+                    {{payer_name}}<br />
+                    Account: <span class="font-mono">{{payer_account}}</span>
+                </div>
+            </td>
+            <td style="width: 50%;">
+                <div class="subtext">
+                    <strong>TO:</strong><br />
+                    {{recipient_name}}<br />
+                    Account: <span class="font-mono">{{recipient_account}}</span>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="transaction-details">
+        <div class="detail-row">
+            <span class="detail-label">Amount</span>
+            <span class="detail-value amount {{transaction_css_class}}">{{transaction_amount}}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Status</span>
+            <span class="detail-value">{{transaction_status}}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Date</span>
+            <span class="detail-value">{{transaction_date}}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Time</span>
+            <span class="detail-value">{{transaction_time}}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Type</span>
+            <span class="detail-value">{{transaction_type}}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Description</span>
+            <span class="detail-value">{{transaction_description}}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Reference ID</span>
+            <span class="detail-value font-mono">{{reference_number}}</span>
+        </div>
+    </div>
+
+    <div class="footer-section">
+
+
+
+        <div class="info">
+
+            <p>• Direct all inquiries to Customer Service at +94 70 1705553 or visit www.orbin.ashanhimantha.com</p>
+            <p>This is an electronically generated receipt and does not require a signature.</p>
+            <p>Thank you for banking with ORBIN BANK.</p>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

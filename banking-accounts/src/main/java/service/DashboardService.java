@@ -7,4 +7,5 @@ import jakarta.ejb.Local;
 public interface DashboardService {
 
     DashboardSummaryDTO getDashboardSummary(String username);
+
 }

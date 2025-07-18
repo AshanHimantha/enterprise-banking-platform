@@ -1,6 +1,7 @@
 package service;
 
 
+import dto.CreateAccountDTO;
 import dto.DashboardAccountDTO;
 import entity.Account;
 import entity.User;
@@ -18,4 +19,5 @@ public interface AccountService {
     Optional<DashboardAccountDTO> findAccountByNumberForUser(String accountNumber, String username);
     void verifyAccountOwnership(String username, String accountNumber);
     Account findAccountByNumber(String accountNumber);
+    DashboardAccountDTO createNewAccountForUser(String username, CreateAccountDTO dto);
 }

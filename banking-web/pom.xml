@@ -61,6 +61,18 @@
             <version>1.0</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-documents</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-cards</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -1,12 +1,17 @@
 package service.impl;
 
+import dto.CreateAccountDTO;
 import entity.Account;
 import dto.DashboardAccountDTO;
 import entity.User;
 import enums.AccountType;
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import service.AccountService;
@@ -24,6 +29,8 @@ public class AccountServiceImpl implements AccountService { // Implements the in
 
     @PersistenceContext(unitName = "bankingPU")
     private EntityManager em;
+
+
 
     @Override // Add the @Override annotation
     public void createAccountForNewUser(User user, BigDecimal initialDeposit , AccountType accountType) {
@@ -89,6 +96,59 @@ public class AccountServiceImpl implements AccountService { // Implements the in
         }
 
 
+    }
+
+
+    @Override
+    @RolesAllowed("CUSTOMER")
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public DashboardAccountDTO createNewAccountForUser(String username, CreateAccountDTO dto) {
+        // --- 1. Validation ---
+        AccountType requestedType = dto.getAccountType();
+        if (requestedType != AccountType.SAVING && requestedType != AccountType.CURRENT) {
+            throw new IllegalArgumentException("Account creation is only allowed for SAVING or CURRENT types.");
+        }
+
+        User user = findUserByUsername(username); // You'll need this helper method
+
+        // --- 2. Enforce Business Rule: Account Limits ---
+        long existingCount = countAccountsOfTypeForUser(user, requestedType);
+
+        final long MAX_ACCOUNTS_PER_TYPE = 2;
+        if (existingCount >= MAX_ACCOUNTS_PER_TYPE) {
+            throw new IllegalStateException("You have reached the maximum limit of " + MAX_ACCOUNTS_PER_TYPE + " " + requestedType + " accounts.");
+        }
+
+        // --- 3. Create the New Account ---
+        Account newAccount = new Account();
+        newAccount.setOwner(user);
+        newAccount.setAccountType(requestedType);
+        newAccount.setBalance(BigDecimal.ZERO);
+        newAccount.setAccountNumber(generateHumanReadableAccountNumber());
+
+        em.persist(newAccount);
+
+        // 4. Return a DTO of the new account
+        return new DashboardAccountDTO(newAccount);
+    }
+
+    // --- NEW HELPER METHODS ---
+
+    private User findUserByUsername(String username) {
+        try {
+            return em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
+                    .setParameter("username", username).getSingleResult();
+        } catch (NoResultException e) {
+            throw new IllegalArgumentException("User not found.");
+        }
+    }
+
+    private long countAccountsOfTypeForUser(User user, AccountType accountType) {
+        TypedQuery<Long> query = em.createQuery(
+                "SELECT COUNT(a) FROM Account a WHERE a.owner = :user AND a.accountType = :type", Long.class);
+        query.setParameter("user", user);
+        query.setParameter("type", accountType);
+        return query.getSingleResult();
     }
 
     @Override

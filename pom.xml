@@ -19,6 +19,7 @@
         <module>banking-billers</module>
         <module>banking-interest</module>
         <module>banking-documents</module>
+        <module>banking-cards</module>
 
     </modules>
 

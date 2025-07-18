@@ -26,15 +26,15 @@ public class CorsFilter implements Filter {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
-
+        System.out.println("Received request path: " + httpRequest.getRequestURI());
         // Get the origin from the request
         String origin = httpRequest.getHeader("Origin");
 
         // Set CORS headers - allow specific origins for JWT auth
         if (origin != null && (origin.equals("http://localhost:3000") ||
-                               origin.equals("http://localhost:3001") ||
+                               origin.equals("https://baking-webapp.vercel.app") ||
                                origin.equals("http://127.0.0.1:3000") ||
-                               origin.equals("http://127.0.0.1:3001"))) {
+                               origin.equals("https://orbinbank.ashanhimantha.com"))) {
             httpResponse.setHeader("Access-Control-Allow-Origin", origin);
             httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
         } else {

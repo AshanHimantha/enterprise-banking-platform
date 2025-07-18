@@ -1,6 +1,7 @@
 package rest;
 
 
+import dto.CreateAccountDTO;
 import dto.DashboardAccountDTO;
 import entity.User;
 import enums.AccountType;
@@ -15,6 +16,7 @@ import service.AccountService;
 
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,5 +67,33 @@ public class AccountController {
                 .map(Response::ok) // If found, wrap DTO in 200 OK
                 .orElse(Response.status(Response.Status.FORBIDDEN)) // If not found, it means user doesn't own it or it doesn't exist
                 .build();
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("CUSTOMER")
+    public Response createNewAccount(CreateAccountDTO createAccountDTO, @Context SecurityContext securityContext) {
+        try {
+            String username = securityContext.getUserPrincipal().getName();
+
+            // Validate input
+            if (createAccountDTO.getAccountType() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Collections.singletonMap("error", "accountType is a required field."))
+                        .build();
+            }
+
+            DashboardAccountDTO newAccount = accountService.createNewAccountForUser(username, createAccountDTO);
+
+            // Return 201 Created with the new account's details
+            return Response.status(Response.Status.CREATED).entity(newAccount).build();
+
+        } catch (Exception e) {
+            // Catches errors like "limit reached" or "invalid type" from the service
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Collections.singletonMap("error", e.getMessage()))
+                    .build();
+        }
     }
 }

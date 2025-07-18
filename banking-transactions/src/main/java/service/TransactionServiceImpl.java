@@ -2,15 +2,13 @@ package service;
 
 import dto.BillPaymentRequestDTO;
 import dto.TransactionDTO;
+import dto.TransactionDetailDTO;
 import dto.TransactionRequestDTO;
 import entity.Account;
 import entity.Biller;
 import entity.Transaction;
 import entity.User;
-import enums.BillerStatus;
-import enums.TransactionStatus;
-import enums.TransactionType;
-import enums.UserStatus;
+import enums.*;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
@@ -24,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Stateless
@@ -81,6 +80,100 @@ public class TransactionServiceImpl implements TransactionService {
         transactionLog.setRunningBalance(newFromBalance); // Store the new balance of the sender's account
 
         em.persist(transactionLog);
+    }
+
+    @Override
+    @RolesAllowed("CUSTOMER")
+    public Optional<TransactionDetailDTO> getTransactionDetails(String username, Long transactionId) {
+        // 1. Find the core transaction
+        // We use JOIN FETCH to get the related accounts and users in single, efficient queries.
+        TypedQuery<Transaction> query = em.createQuery(
+                "SELECT t FROM Transaction t " +
+                        "LEFT JOIN FETCH t.fromAccount fa LEFT JOIN FETCH fa.owner " +
+                        "LEFT JOIN FETCH t.toAccount ta LEFT JOIN FETCH ta.owner " +
+                        "WHERE t.id = :transactionId", Transaction.class);
+        query.setParameter("transactionId", transactionId);
+
+        Transaction transaction;
+        try {
+            transaction = query.getSingleResult();
+        } catch (NoResultException e) {
+            return Optional.empty(); // Not found
+        }
+
+        // 2. Perform the security check
+        if (!isUserParticipant(username, transaction)) {
+            throw new SecurityException("You are not authorized to view this transaction.");
+        }
+
+        // 3. Create the DTO and manually map ALL data, including the new avatar URLs
+        TransactionDetailDTO dto = new TransactionDetailDTO();
+        dto.setId(transaction.getId());
+        dto.setTransactionType(transaction.getTransactionType());
+        dto.setStatus(transaction.getStatus());
+        dto.setAmount(transaction.getAmount());
+        dto.setTransactionDate(transaction.getTransactionDate());
+        dto.setDescription(transaction.getDescription());
+        dto.setUserMemo(transaction.getUserMemo());
+
+        // Map "From" details
+        if (transaction.getFromAccount() != null && transaction.getFromAccount().getOwner() != null) {
+            User fromOwner = transaction.getFromAccount().getOwner();
+            dto.setFromAccountNumber(transaction.getFromAccount().getAccountNumber());
+            dto.setFromOwnerName(fromOwner.getFirstName() + " " + fromOwner.getLastName());
+            dto.setFromOwnerAvatarUrl(buildAvatarApiUrl(fromOwner.getProfilePictureUrl()));
+        }
+
+        // Map "To" details intelligently
+        if (transaction.getToAccount() != null) {
+            if (transaction.getTransactionType() == TransactionType.BILL_PAYMENT) {
+                // For bill payments, look up the Biller's details
+                Optional<Biller> billerOptional = findBillerByInternalAccount(transaction.getToAccount());
+                if (billerOptional.isPresent()) {
+                    Biller biller = billerOptional.get();
+                    dto.setToOwnerName(biller.getBillerName());
+                    dto.setToAccountNumber("BILLER"); // Hide internal account number
+                    dto.setToOwnerAvatarUrl(buildAvatarApiUrl(biller.getLogoUrl())); // Use the Biller's logo
+                }
+            } else if (transaction.getToAccount().getOwner() != null) {
+                // For user-to-user transfers
+                User toOwner = transaction.getToAccount().getOwner();
+                dto.setToAccountNumber(transaction.getToAccount().getAccountNumber());
+                dto.setToOwnerName(toOwner.getFirstName() + " " + toOwner.getLastName());
+                dto.setToOwnerAvatarUrl(buildAvatarApiUrl(toOwner.getProfilePictureUrl()));
+            }
+        }
+
+        return Optional.of(dto);
+    }
+
+    private String buildAvatarApiUrl(String filename) {
+        if (filename == null || filename.isEmpty()) {
+            return null; // Return null if no image is set
+        }
+        // This constructs the full, client-callable URL.
+        // It assumes you have a public endpoint at this path to serve the images.
+        // This could be for user avatars OR biller logos.
+        // A more advanced version could check the filename pattern.
+        if(filename.contains("avatar")){
+            return "/api/user/profile/avatar/image/" + filename;
+        }else {
+            return "/api/biller/logo/image/" + filename;
+        }
+
+    }
+
+    // Helper method for the security check
+    private boolean isUserParticipant(String username, Transaction transaction) {
+        boolean isSender = transaction.getFromAccount() != null &&
+                transaction.getFromAccount().getOwner() != null &&
+                transaction.getFromAccount().getOwner().getUsername().equals(username);
+
+        boolean isReceiver = transaction.getToAccount() != null &&
+                transaction.getToAccount().getOwner() != null &&
+                transaction.getToAccount().getOwner().getUsername().equals(username);
+
+        return isSender || isReceiver;
     }
 
     @Override
@@ -266,6 +359,21 @@ public class TransactionServiceImpl implements TransactionService {
                     .getSingleResult();
         } catch (NoResultException e) {
             throw new IllegalArgumentException("Account with number '" + accountNumber + "' not found.");
+        }
+    }
+
+    @Override
+    public Optional<Biller> findBillerByInternalAccount(Account account) {
+        if (account == null || account.getAccountType() != AccountType.BILLER) {
+            return Optional.empty();
+        }
+        try {
+            TypedQuery<Biller> query = em.createQuery(
+                    "SELECT b FROM Biller b WHERE b.internalAccount = :account", Biller.class);
+            query.setParameter("account", account);
+            return Optional.of(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
         }
     }
 }
