@@ -24,10 +24,12 @@ import com.itextpdf.layout.Canvas;
 
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import util.LoggingInterceptor;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -41,6 +43,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Stateless
+@Interceptors(LoggingInterceptor.class)
 public class DocumentGenerationServiceImpl implements DocumentGenerationService {
 
     @PersistenceContext(unitName = "bankingPU")

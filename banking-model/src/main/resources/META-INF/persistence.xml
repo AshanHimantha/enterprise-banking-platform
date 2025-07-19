@@ -8,17 +8,29 @@
 
         <jta-data-source>jdbc/bankingDB</jta-data-source>
 
+        <class>entity.Account</class>
+        <class>entity.Biller</class>
+        <class>entity.Deposit</class>
+        <class>entity.InterestAccrual</class>
+        <class>entity.InterestRate</class>
+        <class>entity.InterestRateId</class>
+        <class>entity.KycDocument</class>
+        <class>entity.ScheduledPayment</class>
+        <class>entity.Transaction</class>
+        <class>entity.User</class>
+        <class>entity.UserRole</class>
+        <class>entity.VirtualCard</class>
 
-        <exclude-unlisted-classes>false</exclude-unlisted-classes>
+
+
+
 
         <properties>
-
-            <property name="hibernate.hbm2ddl.auto" value="update"/>
             <property name="jakarta.persistence.schema-generation.database.action" value="create"/>
-            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect"/>
-            <property name="hibernate.show_sql" value="true"/>
-            <property name="hibernate.format_sql" value="true"/>
+            <property name="jakarta.persistence.sharedCache.mode" value="NONE"/>
+            <property name="eclipselink.cache.shared.default" value="false"/>
         </properties>
 
     </persistence-unit>
 </persistence>
+

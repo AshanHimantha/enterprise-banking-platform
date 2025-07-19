@@ -6,15 +6,18 @@ import dto.UserSearchResultDTO;
 import entity.Account;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.Stateless;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import util.LoggingInterceptor;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Stateless
-// CORRECTED: The roles should be in separate quotes.
 @RolesAllowed({"ADMIN", "EMPLOYEE", "CUSTOMER"})
+@Interceptors(LoggingInterceptor.class)
 public class SearchServiceImpl implements SearchService {
 
     @PersistenceContext(unitName = "bankingPU")

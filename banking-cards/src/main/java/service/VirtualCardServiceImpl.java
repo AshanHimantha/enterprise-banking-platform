@@ -10,13 +10,17 @@ import entity.User;
 import entity.VirtualCard;
 import enums.AccountType;
 import enums.VirtualCardStatus;
+import exception.BusinessRuleException;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import util.LoggingInterceptor;
+
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -28,7 +32,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Stateless
-@RolesAllowed("CUSTOMER") // All methods in this service are for customers by default
+@RolesAllowed("CUSTOMER")
+@Interceptors(LoggingInterceptor.class)
 public class VirtualCardServiceImpl implements VirtualCardService {
 
     @PersistenceContext(unitName = "bankingPU")
@@ -61,7 +66,9 @@ public class VirtualCardServiceImpl implements VirtualCardService {
         final long MAX_CARDS_PER_ACCOUNT = 2;
 
         if (existingCardCount >= MAX_CARDS_PER_ACCOUNT) {
-            throw new IllegalStateException("Limit reached: You cannot create more than " + MAX_CARDS_PER_ACCOUNT + " virtual cards for this account.");
+
+            throw new BusinessRuleException("Limit reached: You cannot create more than " +
+                    MAX_CARDS_PER_ACCOUNT + " virtual cards for this account.");
         }
 
         // All checks passed, create the card

@@ -10,10 +10,12 @@ import enums.UserStatus;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import mail.EmailService;
+import util.LoggingInterceptor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,7 +24,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Stateless
-@RolesAllowed({"ADMIN", "EMPLOYEE"}) // Secures all methods in this EJB
+@RolesAllowed({"ADMIN", "EMPLOYEE"})
+@Interceptors(LoggingInterceptor.class)
 public class UserManagementServiceImpl implements UserManagementService {
 
     @PersistenceContext(unitName = "bankingPU")

@@ -12,16 +12,19 @@ import enums.PaymentFrequency;
 import enums.ScheduledPaymentStatus;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.Stateless;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import util.LoggingInterceptor;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Stateless
+@Interceptors(LoggingInterceptor.class)
 public class ScheduledPaymentServiceImpl implements ScheduledPaymentService {
 
     @PersistenceContext(unitName = "bankingPU")

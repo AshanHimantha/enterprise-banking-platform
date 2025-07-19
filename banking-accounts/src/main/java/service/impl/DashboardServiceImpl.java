@@ -5,13 +5,16 @@ import dto.TransactionDTO;
 import dto.DashboardAccountDTO;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
+import jakarta.interceptor.Interceptors;
 import service.AccountService;
 import service.DashboardService;
 import service.TransactionService;
+import util.LoggingInterceptor;
 
 import java.util.List;
 
 @Stateless
+@Interceptors(LoggingInterceptor.class)
 public class DashboardServiceImpl implements DashboardService {
 
     @EJB

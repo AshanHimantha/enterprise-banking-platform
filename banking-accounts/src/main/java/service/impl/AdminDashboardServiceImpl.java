@@ -6,8 +6,11 @@ import enums.KycStatus;
 import enums.UserStatus;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.Stateless;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import util.LoggingInterceptor;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -18,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Stateless
 @RolesAllowed({"ADMIN", "EMPLOYEE"})
+@Interceptors(LoggingInterceptor.class)
 public class AdminDashboardServiceImpl implements AdminDashboardService {
 
     @PersistenceContext(unitName = "bankingPU")

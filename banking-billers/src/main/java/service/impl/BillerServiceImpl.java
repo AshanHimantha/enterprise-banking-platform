@@ -10,10 +10,12 @@ import enums.BillerStatus;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import service.AccountService;
 import service.BilllerService;
+import util.LoggingInterceptor;
 
 import java.io.File;
 import java.io.InputStream;
@@ -27,7 +29,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Stateless
-
+@Interceptors(LoggingInterceptor.class)
 public class BillerServiceImpl implements BilllerService {
 
     @PersistenceContext(unitName = "bankingPU")

@@ -5,12 +5,15 @@ import entity.KycDocument;
 import entity.User;
 import enums.KycStatus;
 import jakarta.ejb.Stateless;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.NoResultException;
 import jakarta.servlet.ServletContext;
 import jakarta.annotation.Resource;
+import util.LoggingInterceptor;
+
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -23,6 +26,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Stateless
+@Interceptors(LoggingInterceptor.class)
 public class KycServiceImpl implements KycService {
 
     @PersistenceContext(unitName = "bankingPU")

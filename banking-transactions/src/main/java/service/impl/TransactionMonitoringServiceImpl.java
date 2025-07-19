@@ -1,4 +1,4 @@
-package service;
+package service.impl;
 
 import dto.AdminTransactionDTO;
 import entity.Biller;
@@ -6,10 +6,14 @@ import entity.Transaction;
 import enums.TransactionType;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.Stateless;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import service.TransactionMonitoringService;
+import util.LoggingInterceptor;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +22,7 @@ import java.util.Map;
 
 @Stateless
 @RolesAllowed({"ADMIN", "EMPLOYEE"})
+@Interceptors(LoggingInterceptor.class)
 public class TransactionMonitoringServiceImpl implements TransactionMonitoringService {
 
     @PersistenceContext(unitName = "bankingPU")

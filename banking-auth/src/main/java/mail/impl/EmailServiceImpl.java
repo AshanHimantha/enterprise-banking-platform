@@ -7,6 +7,7 @@ import jakarta.activation.DataSource;
 import jakarta.annotation.Resource;
 import jakarta.ejb.Asynchronous;
 import jakarta.ejb.Stateless;
+import jakarta.interceptor.Interceptors;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
@@ -14,8 +15,10 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.util.ByteArrayDataSource;
 import mail.EmailService;
+import util.LoggingInterceptor;
 
 @Stateless
+@Interceptors(LoggingInterceptor.class)
 public class EmailServiceImpl implements EmailService {
 
 

@@ -13,11 +13,13 @@ import enums.UserStatus;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import mail.EmailService;
+import util.LoggingInterceptor;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -28,6 +30,7 @@ import java.util.UUID;
 import java.time.LocalDateTime;
 
 @Stateless
+@Interceptors(LoggingInterceptor.class)
 public class AuthServiceImpl implements AuthService {
 
     @PersistenceContext(unitName = "bankingPU")

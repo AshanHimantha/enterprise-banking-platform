@@ -1,4 +1,4 @@
-package service;
+package service.impl;
 
 import entity.Account;
 import entity.Transaction;
@@ -10,14 +10,19 @@ import enums.UserStatus;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import service.GiftService;
+import util.LoggingInterceptor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Stateless
+@Interceptors(LoggingInterceptor.class)
 public class GiftServiceImpl implements GiftService {
 
     @PersistenceContext(unitName = "bankingPU")

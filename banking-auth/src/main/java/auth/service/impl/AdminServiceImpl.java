@@ -11,16 +11,19 @@ import enums.KycStatus;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import service.AccountService;
+import util.LoggingInterceptor;
 
 import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Stateless
+@Interceptors(LoggingInterceptor.class)
 public class AdminServiceImpl implements AdminService {
 
     @PersistenceContext(unitName = "bankingPU")

@@ -1,6 +1,8 @@
 package rest;
 
+import auth.service.UserAuditService;
 import auth.service.UserManagementService;
+import dto.UserAuditDTO;
 import dto.UserDTO;
 import enums.AccountLevel;
 import enums.KycStatus;
@@ -12,6 +14,8 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -22,6 +26,9 @@ public class UserManagementController {
 
     @EJB
     private UserManagementService userManagementService;
+
+    @EJB
+    private UserAuditService userAuditService;
 
     private static final Logger logger = Logger.getLogger(UserManagementController.class.getName());
 
@@ -194,6 +201,25 @@ public class UserManagementController {
             logger.log(Level.SEVERE, "Error reactivating user: " + username, e);
             return createErrorResponse(Response.Status.INTERNAL_SERVER_ERROR,
                 "INTERNAL_ERROR", "Unable to reactivate user. Please try again later.");
+        }
+    }
+
+    // *** ADD THIS NEW ENDPOINT ***
+    @GET
+    @Path("/{username}/audit")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getFullUserAudit(
+            @PathParam("username") String username,
+            @QueryParam("page") @DefaultValue("1") int page,
+            @QueryParam("size") @DefaultValue("25") int size) {
+
+        try {
+            UserAuditDTO auditData = userAuditService.getFullUserAudit(username, page, size);
+            return Response.ok(auditData).build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(Collections.singletonMap("error", e.getMessage()))
+                    .build();
         }
     }
 

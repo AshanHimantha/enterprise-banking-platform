@@ -10,11 +10,13 @@ import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import service.AccountService;
+import util.LoggingInterceptor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,6 +27,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 @Stateless
+@Interceptors(LoggingInterceptor.class)
 public class AccountServiceImpl implements AccountService { // Implements the interface
 
     @PersistenceContext(unitName = "bankingPU")

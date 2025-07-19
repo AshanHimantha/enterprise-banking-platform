@@ -7,9 +7,12 @@ import enums.TransactionType;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import util.LoggingInterceptor;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -20,6 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Stateless
+@Interceptors(LoggingInterceptor.class)
 public class InterestServiceImpl implements InterestService {
 
     @PersistenceContext(unitName = "bankingPU")

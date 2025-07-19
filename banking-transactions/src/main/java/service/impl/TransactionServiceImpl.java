@@ -1,4 +1,4 @@
-package service;
+package service.impl;
 
 import dto.BillPaymentRequestDTO;
 import dto.TransactionDTO;
@@ -13,11 +13,15 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
+import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import service.TransactionService;
+import util.LoggingInterceptor;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,6 +30,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Stateless
+@Interceptors(LoggingInterceptor.class)
 public class TransactionServiceImpl implements TransactionService {
 
     @PersistenceContext(unitName = "bankingPU")
