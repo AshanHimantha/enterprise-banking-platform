@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 @Path("/admin/manage/users")
-@RolesAllowed({"ADMIN", "EMPLOYEE"})
 public class UserManagementController {
 
     @EJB
@@ -72,6 +71,8 @@ public class UserManagementController {
                 .build();
     }
 
+
+    @RolesAllowed({"ADMIN", "EMPLOYEE"})
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response listAllUsers() {
@@ -85,6 +86,7 @@ public class UserManagementController {
         }
     }
 
+    @RolesAllowed({"ADMIN", "EMPLOYEE"})
     @GET
     @Path("/{username}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -109,6 +111,7 @@ public class UserManagementController {
         }
     }
 
+    @RolesAllowed("ADMIN")
     @POST
     @Path("/{username}/suspend")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -159,6 +162,7 @@ public class UserManagementController {
         }
     }
 
+    @RolesAllowed("ADMIN")
     @POST
     @Path("/{username}/reactivate")
     @Produces(MediaType.APPLICATION_JSON)
@@ -193,6 +197,7 @@ public class UserManagementController {
         }
     }
 
+    @RolesAllowed({"ADMIN", "EMPLOYEE"})
     @GET
     @Path("/search")
     @Produces(MediaType.APPLICATION_JSON)
