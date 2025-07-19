@@ -101,8 +101,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 3. Set server-side defaults
         newUser.setPassword(hashPassword(registerDTO.getPassword()));
-        // For simplicity, we set the initial passcode to be the same as the password.
-        // A real app would have a separate "set passcode" flow.
+
 
 
         // Your required defaults

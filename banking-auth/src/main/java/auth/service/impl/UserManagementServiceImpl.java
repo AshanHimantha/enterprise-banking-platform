@@ -2,30 +2,36 @@ package auth.service.impl;
 
 
 import auth.service.UserManagementService;
+import dto.EmployeeCreateDTO;
+import dto.EmployeeDTO;
 import dto.UserDTO;
 import entity.User;
+import entity.UserRole;
 import enums.AccountLevel;
 import enums.KycStatus;
 import enums.UserStatus;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
 import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import mail.EmailService;
 import util.LoggingInterceptor;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Stateless
 @RolesAllowed({"ADMIN", "EMPLOYEE"})
-@Interceptors(LoggingInterceptor.class)
 public class UserManagementServiceImpl implements UserManagementService {
 
     @PersistenceContext(unitName = "bankingPU")
@@ -62,12 +68,11 @@ public class UserManagementServiceImpl implements UserManagementService {
         user.setKycReviewedAt(LocalDateTime.now());
         em.merge(user);
 
-        // Send suspension email notification
         try {
             emailService.sendAccountSuspensionEmail(user.getEmail(), user.getUsername(), reason, adminUsername);
         } catch (Exception e) {
             System.err.println("Warning: Failed to send suspension email to " + user.getEmail() + ": " + e.getMessage());
-            // Don't throw exception here as the suspension was successful, just email failed
+
         }
     }
 
@@ -86,12 +91,12 @@ public class UserManagementServiceImpl implements UserManagementService {
         user.setKycReviewedAt(LocalDateTime.now());
         em.merge(user);
 
-        // Send reactivation email notification
+
         try {
             emailService.sendAccountReactivationEmail(user.getEmail(), user.getUsername(), adminUsername);
         } catch (Exception e) {
             System.err.println("Warning: Failed to send reactivation email to " + user.getEmail() + ": " + e.getMessage());
-            // Don't throw exception here as the reactivation was successful, just email failed
+
         }
     }
 
@@ -104,7 +109,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         List<Object> parameters = new ArrayList<>();
         int paramIndex = 1;
 
-        // Build dynamic query with filters
+
         if (accountLevel != null) {
             jpql.append(" AND u.accountLevel = ?").append(paramIndex++);
             parameters.add(accountLevel);
@@ -184,7 +189,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
         TypedQuery<Long> query = em.createQuery(jpql.toString(), Long.class);
 
-        // Set parameters
+
         for (int i = 0; i < parameters.size(); i++) {
             query.setParameter(i + 1, parameters.get(i));
         }
@@ -192,7 +197,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         return query.getSingleResult().intValue();
     }
 
-    // Helper method to find the raw User entity
+
     private Optional<User> findUserEntityByUsername(String username) {
         TypedQuery<User> query = em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class);
         query.setParameter("username", username);
@@ -202,6 +207,183 @@ public class UserManagementServiceImpl implements UserManagementService {
             return Optional.empty();
         }
     }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public EmployeeDTO createEmployee(EmployeeCreateDTO dto) {
+        // --- 1. Validation ---
+        validateEmployeeCreateDTO(dto);
+
+        // Check for uniqueness
+        if (isUsernameTaken(dto.getUsername())) {
+            throw new IllegalArgumentException("Username '" + dto.getUsername() + "' is already taken.");
+        }
+        if (isEmailTaken(dto.getEmail())) {
+            throw new IllegalArgumentException("Email '" + dto.getEmail() + "' is already registered.");
+        }
+        if (isPhoneNumberTaken(dto.getPhoneNumber())) {
+            throw new IllegalArgumentException("Phone number '" + dto.getPhoneNumber() + "' is already registered.");
+        }
+
+        User newUser = new User();
+        newUser.setFirstName(dto.getFirstName());
+        newUser.setLastName(dto.getLastName());
+        newUser.setEmail(dto.getEmail());
+        newUser.setPhoneNumber(dto.getPhoneNumber());
+        newUser.setUsername(dto.getUsername());
+
+        newUser.setPassword(hashPassword(dto.getInitialPassword()));
+        newUser.setPasscode(null);
+
+        newUser.setEmailVerified(true);
+        newUser.setStatus(UserStatus.ACTIVE);
+        newUser.setRegisteredDate(LocalDateTime.now());
+
+        newUser.setKycStatus(KycStatus.VERIFIED);
+        newUser.setAccountLevel(AccountLevel.BRONZE);
+
+        em.persist(newUser);
+        em.flush();
+
+        UserRole userRole = new UserRole();
+        userRole.setUsername(newUser.getUsername());
+        userRole.setRolename(dto.getRole());
+        em.persist(userRole);
+
+
+        return new EmployeeDTO(newUser, List.of(dto.getRole()));
+    }
+
+    @Override
+    public List<EmployeeDTO> getAllEmployees() {
+
+        TypedQuery<User> query = em.createQuery(
+                "SELECT u FROM User u JOIN UserRole ur ON u.username = ur.username WHERE ur.rolename IN ('ADMIN', 'EMPLOYEE')", User.class);
+
+        List<User> employees = query.getResultList();
+
+
+        return employees.stream()
+                .map(user -> new EmployeeDTO(user, findRolesForUser(user.getUsername())))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public EmployeeDTO addRoleToUser(String username, String roleToAdd) {
+        validateRole(roleToAdd); // Helper to check if role is "EMPLOYEE" or "ADMIN"
+        User user = findUserEntityByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+
+
+        List<String> currentRoles = findRolesForUser(username);
+        if (currentRoles.contains(roleToAdd)) {
+
+            return new EmployeeDTO(user, currentRoles);
+        }
+
+
+        UserRole newUserRole = new UserRole();
+        newUserRole.setUsername(username);
+        newUserRole.setRolename(roleToAdd);
+        em.persist(newUserRole);
+
+        currentRoles.add(roleToAdd);
+        return new EmployeeDTO(user, currentRoles);
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public EmployeeDTO removeRoleFromUser(String username, String roleToRemove) {
+        validateRole(roleToRemove);
+        User user = findUserEntityByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+
+        if (findRolesForUser(username).size() <= 1 && roleToRemove.equals("ADMIN")) {
+
+        }
+
+
+        int deletedCount = em.createQuery("DELETE FROM UserRole ur WHERE ur.username = :username AND ur.rolename = :role")
+                .setParameter("username", username)
+                .setParameter("role", roleToRemove)
+                .executeUpdate();
+
+        if (deletedCount == 0) {
+
+        }
+
+        return new EmployeeDTO(user, findRolesForUser(username)); // Return the new list of roles
+    }
+
+    private void validateRole(String role) {
+        if (!role.equals("EMPLOYEE") && !role.equals("ADMIN")) {
+            throw new IllegalArgumentException("Invalid role. Must be EMPLOYEE or ADMIN.");
+        }
+    }
+
+    private List<String> findRolesForUser(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        try {
+
+            TypedQuery<String> query = em.createQuery(
+                    "SELECT ur.rolename FROM UserRole ur WHERE ur.username = :username", String.class);
+
+            query.setParameter("username", username);
+
+
+            return query.getResultList();
+
+        } catch (Exception e) {
+
+            System.err.println("Error finding roles for user " + username + ": " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error hashing password", e);
+        }
+    }
+    private void validateEmployeeCreateDTO(EmployeeCreateDTO dto) {
+        if (dto == null) throw new IllegalArgumentException("Request data cannot be null.");
+        if (dto.getUsername() == null || dto.getUsername().trim().isEmpty()) throw new IllegalArgumentException("Username is required.");
+        if (dto.getEmail() == null || dto.getEmail().trim().isEmpty()) throw new IllegalArgumentException("Email is required.");
+        if (dto.getInitialPassword() == null || dto.getInitialPassword().isEmpty()) throw new IllegalArgumentException("Initial password is required.");
+        if (dto.getRole() == null || (!dto.getRole().equals("EMPLOYEE") && !dto.getRole().equals("ADMIN"))) {
+            throw new IllegalArgumentException("Invalid role. Must be EMPLOYEE or ADMIN.");
+        }
+
+    }
+
+    private boolean isUsernameTaken(String username) {
+        return em.createQuery("SELECT COUNT(u) FROM User u WHERE u.username = :username", Long.class)
+                .setParameter("username", username)
+                .getSingleResult() > 0;
+    }
+
+    private boolean isEmailTaken(String email) {
+        return em.createQuery("SELECT COUNT(u) FROM User u WHERE u.email = :email", Long.class)
+                .setParameter("email", email)
+                .getSingleResult() > 0;
+    }
+
+    private boolean isPhoneNumberTaken(String phone) {
+        return em.createQuery("SELECT COUNT(u) FROM User u WHERE u.phoneNumber = :phone", Long.class)
+                .setParameter("phone", phone)
+                .getSingleResult() > 0;
+    }
+
+
 
 
 }

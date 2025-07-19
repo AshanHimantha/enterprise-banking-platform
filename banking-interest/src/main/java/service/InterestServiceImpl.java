@@ -1,9 +1,11 @@
 package service;
 
+import dto.InterestRateDTO;
 import entity.*;
 import enums.AccountType;
 import enums.TransactionStatus;
 import enums.TransactionType;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
@@ -106,7 +108,50 @@ public class InterestServiceImpl implements InterestService {
         }
     }
 
-// --- New and Updated Helper Methods ---
+
+    @Override
+    public List<InterestRateDTO> getAllInterestRates() {
+        return em.createQuery("SELECT ir FROM InterestRate ir", InterestRate.class)
+                .getResultStream()
+                .map(InterestRateDTO::new)
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public InterestRateDTO saveOrUpdateInterestRate(InterestRateDTO rateDTO) {
+        // Validate input
+        if (rateDTO.getAccountType() == null || rateDTO.getAccountLevel() == null || rateDTO.getAnnualRate() == null) {
+            throw new IllegalArgumentException("AccountType, AccountLevel, and AnnualRate are required.");
+        }
+        if (rateDTO.getAnnualRate().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Annual rate cannot be negative.");
+        }
+
+        // Create the composite key
+        InterestRateId id = new InterestRateId(rateDTO.getAccountType(), rateDTO.getAccountLevel());
+
+        // Try to find an existing rate
+        InterestRate rateEntity = em.find(InterestRate.class, id);
+
+        if (rateEntity == null) {
+            // If it doesn't exist, create a new one
+            rateEntity = new InterestRate();
+            rateEntity.setId(id);
+        }
+
+        // Update the entity with data from the DTO
+        rateEntity.setAnnualRate(rateDTO.getAnnualRate());
+        rateEntity.setDescription(rateDTO.getDescription());
+
+        // Use merge() to either insert the new entity or update the existing one.
+        InterestRate savedEntity = em.merge(rateEntity);
+
+        return new InterestRateDTO(savedEntity);
+    }
+
+
 
     private boolean hasAccruedToday(Account account, LocalDate date) {
         Long count = em.createQuery("SELECT COUNT(ia) FROM InterestAccrual ia WHERE ia.account = :account AND ia.accrualDate = :date", Long.class)

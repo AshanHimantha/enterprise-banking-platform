@@ -73,6 +73,12 @@
             <version>1.0</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-interest</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
