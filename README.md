@@ -85,7 +85,7 @@ cd enterprise-banking-platform
 
 ### Step 2: Database Setup
 Log in to your MySQL server command line or client and run the following SQL commands. Remember to replace 'YourStrongPassword' with your own secure password.
-
+```
 CREATE DATABASE banking_app_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE USER 'bankinguser'@'localhost' IDENTIFIED BY 'YourStrongPassword';
@@ -95,7 +95,7 @@ GRANT ALL PRIVILEGES ON banking_app_db.* TO 'bankinguser'@'localhost';
 FLUSH PRIVILEGES;
 
 EXIT;
-
+```
 
 ## Step 3: Payara Server Configuration
 
@@ -171,6 +171,7 @@ mvn clean install
 ```
 ## Deploy via asadmin (Command Line)
 # Navigate to Payara bin directory if not in PATH
+```
 asadmin deploy /path/to/your/project/banking-ear/target/enterprise-banking-platform-1.0.ear
-
+```
 
