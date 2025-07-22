@@ -81,3 +81,95 @@ Follow these steps to set up the environment and deploy the application.
 ```bash
 git clone https://github.com/AshanHimantha/enterprise-banking-platform.git
 cd enterprise-banking-platform
+
+### Step 2: Database Setup
+Log in to your MySQL server command line or client and run the following SQL commands. Remember to replace 'YourStrongPassword' with your own secure password.
+
+CREATE DATABASE banking_app_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 'bankinguser'@'localhost' IDENTIFIED BY 'YourStrongPassword';
+
+GRANT ALL PRIVILEGES ON banking_app_db.* TO 'bankinguser'@'localhost';
+
+FLUSH PRIVILEGES;
+
+EXIT;
+
+
+## Step 3: Payara Server Configuration
+
+These steps are performed in the Payara Admin Console: [http://localhost:4848](http://localhost:4848)
+
+### 3.1. JDBC Connection Pool
+
+1. Navigate to: `Resources -> JDBC -> JDBC Connection Pools`
+2. Click **New**
+3. Fill in:
+   - **Pool Name**: `BankingAppPool`
+   - **Resource Type**: `javax.sql.DataSource`
+   - **Database Driver Vendor**: `MySql`
+4. Click **Next**
+5. Scroll to the bottom and set the following Additional Properties:
+   - `user`: `bankinguser`
+   - `password`: `YourStrongPassword`
+   - `databaseName`: `banking_app_db`
+   - `serverName`: `localhost`
+   - `portNumber`: `3306`
+6. Click **Finish**
+
+### 3.2. JDBC Resource
+
+1. Navigate to: `Resources -> JDBC -> JDBC Resources`
+2. Click **New**
+3. Fill in:
+   - **JNDI Name**: `jdbc/bankingDB`
+   - **Pool Name**: Select `BankingAppPool` from the dropdown
+4. Click **OK**
+5. Go back to the JDBC Connection Pools page, select `BankingAppPool`, and click **Ping**
+6. You should see a **"Ping Succeeded"** message
+
+### 3.3. JavaMail Session (Zoho Mail)
+
+1. Navigate to: `Resources -> JavaMail Sessions`
+2. Click **New**
+3. Fill in:
+   - **JNDI Name**: `mail/zoho`
+   - **Mail Host**: `smtp.zoho.com`
+   - **Default User**: `you@yourdomain.com`
+   - **Default Sender Address**: `you@yourdomain.com`
+4. Scroll to Additional Properties and add:
+
+| Property Name              | Value                              |
+|---------------------------|------------------------------------|
+| `mail.smtp.auth`          | `true`                             |
+| `mail.smtp.port`          | `587`                              |
+| `mail.smtp.starttls.enable` | `true`                         |
+| `mail.smtp.ssl.enable`    | `false`                            |
+| `mail.smtp.password`      | `YourAppSpecific16CharPassword`    |
+
+5. Ensure **Status** is set to **Enabled** and click **OK**
+
+### 3.4. JMS Destination Resource (Statement Queue)
+
+1. Navigate to: `Resources -> JMS Resources -> Destination Resources`
+2. Click **New**
+3. Fill in:
+   - **JNDI Name**: `jms/statementQueue`
+   - **Physical Destination Name**: `StatementQueue`
+   - **Resource Type**: `jakarta.jms.Queue`
+4. Click **OK**
+
+---
+
+## Step 4: Build and Deploy
+
+### Build the Project
+
+```bash
+mvn clean install
+
+## Deploy via asadmin (Command Line)
+# Navigate to Payara bin directory if not in PATH
+asadmin deploy /path/to/your/project/banking-ear/target/enterprise-banking-platform-1.0.ear
+
+
