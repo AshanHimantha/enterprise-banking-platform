@@ -120,7 +120,7 @@ public class AdminBillerController {
                     .build();
         }
 
-        // --- Service Call ---
+
         try {
             billlerService.updateBillerStatus(billerId, newStatus);
             return Response.ok(Collections.singletonMap("message", "Biller status updated successfully.")).build();

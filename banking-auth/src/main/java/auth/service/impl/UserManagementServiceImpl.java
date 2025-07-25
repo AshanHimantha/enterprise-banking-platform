@@ -1,6 +1,9 @@
 package auth.service.impl;
 
 
+import annotation.Audit;
+import annotation.Logging;
+import util.AuditingInterceptor;
 import auth.service.UserManagementService;
 import dto.EmployeeCreateDTO;
 import dto.EmployeeDTO;
@@ -17,7 +20,6 @@ import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
 import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import mail.EmailService;
@@ -30,8 +32,11 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Audit
+@Logging
 @Stateless
 @RolesAllowed({"ADMIN", "EMPLOYEE"})
+@Interceptors({LoggingInterceptor.class, AuditingInterceptor.class})
 public class UserManagementServiceImpl implements UserManagementService {
 
     @PersistenceContext(unitName = "bankingPU")

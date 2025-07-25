@@ -1,5 +1,7 @@
 package service.impl;
 
+import annotation.Audit;
+import annotation.Logging;
 import dto.DepositHistoryDTO;
 import dto.DepositRequestDTO;
 import entity.Account;
@@ -24,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Audit
+@Logging
 @Stateless
 @RolesAllowed({"EMPLOYEE","ADMIN"})
 @Interceptors(LoggingInterceptor.class)

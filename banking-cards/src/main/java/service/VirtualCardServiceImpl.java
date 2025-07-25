@@ -1,7 +1,6 @@
 package service;
 
-
-
+import util.AuditingInterceptor;
 import dto.CreateVirtualCardDTO;
 import dto.UnmaskedVirtualCardDTO;
 import dto.VirtualCardDTO;
@@ -33,7 +32,7 @@ import java.util.stream.Collectors;
 
 @Stateless
 @RolesAllowed("CUSTOMER")
-@Interceptors(LoggingInterceptor.class)
+@Interceptors({LoggingInterceptor.class, AuditingInterceptor.class})
 public class VirtualCardServiceImpl implements VirtualCardService {
 
     @PersistenceContext(unitName = "bankingPU")

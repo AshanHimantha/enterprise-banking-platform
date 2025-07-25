@@ -24,6 +24,12 @@
             <artifactId>banking-model</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.ashanhimantha.ee</groupId>
+            <artifactId>banking-auth</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
 
 
     </dependencies>

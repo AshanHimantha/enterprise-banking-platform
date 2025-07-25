@@ -1,6 +1,8 @@
 package scheduler.timer;
 
 
+import annotation.Audit;
+import annotation.Logging;
 import dto.TransactionRequestDTO;
 import entity.Account;
 import entity.ScheduledPayment;
@@ -19,7 +21,8 @@ import service.TransactionService;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
+@Audit
+@Logging
 @Singleton
 @Startup
 public class PaymentScheduler {
@@ -31,17 +34,12 @@ public class PaymentScheduler {
     private ScheduledPaymentService scheduledPaymentService;
 
     @EJB
-    private TransactionService transactionService; // Still needed for user-to-user transfers
+    private TransactionService transactionService;
 
-    /**
-     * This method is automatically invoked by the EJB container.
-     * Runs every day at 3:00 AM Colombo time.
-     */
-    @Schedule(hour = "5", minute = "14", second = "0", persistent = true, timezone = "Asia/Colombo")
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW) // Each scheduler run is its own new transaction
+    @Schedule(hour = "12", minute = "16", second = "0", persistent = true, timezone = "Asia/Colombo")
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void executeDuePayments() {
         System.out.println("SCHEDULER: Starting job run...");
-
         System.out.println("PaymentScheduler starting job at " + java.time.LocalDateTime.now());
         List<ScheduledPayment> duePayments = scheduledPaymentService.findDuePayments();
 
@@ -49,19 +47,16 @@ public class PaymentScheduler {
             System.out.println("No due payments to process today.");
             return;
         }
-
         System.out.println("Found " + duePayments.size() + " due payment(s) to process.");
 
         for (ScheduledPayment payment : duePayments) {
             try {
-                // Determine if it's a bill payment or a user transfer
                 if (payment.getBiller() != null) {
                     processScheduledBillPayment(payment);
                 } else if (payment.getToAccount() != null) {
                     processScheduledUserTransfer(payment);
                 }
 
-                // If successful, reschedule for the next period
                 scheduledPaymentService.reschedulePayment(payment);
                 System.out.println("  -> Successfully processed and rescheduled payment ID: " + payment.getId());
 

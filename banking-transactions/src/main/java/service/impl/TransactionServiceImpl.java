@@ -1,5 +1,7 @@
 package service.impl;
 
+import annotation.Audit;
+import annotation.Logging;
 import dto.BillPaymentRequestDTO;
 import dto.TransactionDTO;
 import dto.TransactionDetailDTO;
@@ -9,6 +11,8 @@ import entity.Biller;
 import entity.Transaction;
 import entity.User;
 import enums.*;
+import exception.AccountStatusException;
+import exception.InsufficientFundsException;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
@@ -29,6 +33,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Audit
+@Logging
 @Stateless
 @Interceptors(LoggingInterceptor.class)
 public class TransactionServiceImpl implements TransactionService {
@@ -40,16 +46,14 @@ public class TransactionServiceImpl implements TransactionService {
     @RolesAllowed("CUSTOMER")
     @TransactionAttribute(TransactionAttributeType.REQUIRED) // Ensures this whole method is one atomic database transaction
     public void performTransfer(String username, TransactionRequestDTO request) {
-        // 1. Find the user making the request
+
         User user = findUserByUsername(username);
 
-        // 2. Find and apply a pessimistic lock to the accounts to prevent race conditions
         Account fromAccount = findAndLockAccount(request.getFromAccountNumber());
         Account toAccount = findAndLockAccount(request.getToAccountNumber());
 
-        // 3. Perform Validations (Security, Business Rules)
         if (user.getStatus() != UserStatus.ACTIVE) {
-            throw new IllegalStateException("Your account is not active. Please contact support.");
+            throw new AccountStatusException("Your account is not active. Please contact support.");
         }
         if (!fromAccount.getOwner().equals(user)) {
             throw new SecurityException("Authorization error: You do not own the source account.");
@@ -58,21 +62,19 @@ public class TransactionServiceImpl implements TransactionService {
             throw new IllegalArgumentException("Transfer amount must be a positive value.");
         }
         if (fromAccount.getBalance().compareTo(request.getAmount()) < 0) {
-            throw new IllegalStateException("Insufficient funds for this transfer.");
+            throw new InsufficientFundsException("Insufficient funds for this transfer.");
         }
         if(fromAccount.getAccountNumber().equals(toAccount.getAccountNumber())){
             throw new IllegalArgumentException("Cannot transfer funds to the same account.");
         }
 
-        // *** THE ARITHMETIC FIX ***
-        // 4. Perform the debit and credit using BigDecimal's precise math methods
         BigDecimal newFromBalance = fromAccount.getBalance().subtract(request.getAmount());
         fromAccount.setBalance(newFromBalance);
 
         BigDecimal newToBalance = toAccount.getBalance().add(request.getAmount());
         toAccount.setBalance(newToBalance);
 
-        // 5. Create and persist the transaction log
+
         Transaction transactionLog = new Transaction();
         transactionLog.setTransactionType(TransactionType.TRANSFER);
         transactionLog.setStatus(TransactionStatus.COMPLETED);
@@ -82,7 +84,7 @@ public class TransactionServiceImpl implements TransactionService {
         transactionLog.setTransactionDate(LocalDateTime.now());
         transactionLog.setDescription("Transfer to " + toAccount.getOwner().getFirstName());
         transactionLog.setUserMemo(request.getUserMemo());
-        transactionLog.setRunningBalance(newFromBalance); // Store the new balance of the sender's account
+        transactionLog.setRunningBalance(newFromBalance);
 
         em.persist(transactionLog);
     }
@@ -90,8 +92,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @RolesAllowed("CUSTOMER")
     public Optional<TransactionDetailDTO> getTransactionDetails(String username, Long transactionId) {
-        // 1. Find the core transaction
-        // We use JOIN FETCH to get the related accounts and users in single, efficient queries.
+
         TypedQuery<Transaction> query = em.createQuery(
                 "SELECT t FROM Transaction t " +
                         "LEFT JOIN FETCH t.fromAccount fa LEFT JOIN FETCH fa.owner " +
@@ -106,12 +107,11 @@ public class TransactionServiceImpl implements TransactionService {
             return Optional.empty(); // Not found
         }
 
-        // 2. Perform the security check
         if (!isUserParticipant(username, transaction)) {
             throw new SecurityException("You are not authorized to view this transaction.");
         }
 
-        // 3. Create the DTO and manually map ALL data, including the new avatar URLs
+
         TransactionDetailDTO dto = new TransactionDetailDTO();
         dto.setId(transaction.getId());
         dto.setTransactionType(transaction.getTransactionType());
@@ -121,7 +121,7 @@ public class TransactionServiceImpl implements TransactionService {
         dto.setDescription(transaction.getDescription());
         dto.setUserMemo(transaction.getUserMemo());
 
-        // Map "From" details
+
         if (transaction.getFromAccount() != null && transaction.getFromAccount().getOwner() != null) {
             User fromOwner = transaction.getFromAccount().getOwner();
             dto.setFromAccountNumber(transaction.getFromAccount().getAccountNumber());
@@ -129,19 +129,19 @@ public class TransactionServiceImpl implements TransactionService {
             dto.setFromOwnerAvatarUrl(buildAvatarApiUrl(fromOwner.getProfilePictureUrl()));
         }
 
-        // Map "To" details intelligently
+
         if (transaction.getToAccount() != null) {
             if (transaction.getTransactionType() == TransactionType.BILL_PAYMENT) {
-                // For bill payments, look up the Biller's details
+
                 Optional<Biller> billerOptional = findBillerByInternalAccount(transaction.getToAccount());
                 if (billerOptional.isPresent()) {
                     Biller biller = billerOptional.get();
                     dto.setToOwnerName(biller.getBillerName());
-                    dto.setToAccountNumber("BILLER"); // Hide internal account number
-                    dto.setToOwnerAvatarUrl(buildAvatarApiUrl(biller.getLogoUrl())); // Use the Biller's logo
+                    dto.setToAccountNumber("BILLER");
+                    dto.setToOwnerAvatarUrl(buildAvatarApiUrl(biller.getLogoUrl()));
                 }
             } else if (transaction.getToAccount().getOwner() != null) {
-                // For user-to-user transfers
+
                 User toOwner = transaction.getToAccount().getOwner();
                 dto.setToAccountNumber(transaction.getToAccount().getAccountNumber());
                 dto.setToOwnerName(toOwner.getFirstName() + " " + toOwner.getLastName());
@@ -156,10 +156,7 @@ public class TransactionServiceImpl implements TransactionService {
         if (filename == null || filename.isEmpty()) {
             return null; // Return null if no image is set
         }
-        // This constructs the full, client-callable URL.
-        // It assumes you have a public endpoint at this path to serve the images.
-        // This could be for user avatars OR biller logos.
-        // A more advanced version could check the filename pattern.
+
         if(filename.contains("avatar")){
             return "/api/user/profile/avatar/image/" + filename;
         }else {
@@ -217,19 +214,16 @@ public class TransactionServiceImpl implements TransactionService {
     @RolesAllowed("CUSTOMER")
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void payBill(String username, BillPaymentRequestDTO request) {
-        // 1. Find the user making the request
-        User user = findUserByUsername(username);
 
-        // 2. Find and lock accounts for the transaction
+        User user = findUserByUsername(username);
         Account fromAccount = findAndLockAccount(request.getFromAccountNumber());
 
         Biller biller = findBillerById(request.getBillerId());
         Account toBillerAccount = findAndLockAccount(biller.getInternalAccount().getAccountNumber());
         BigDecimal paymentAmount = request.getAmount();
 
-        // 3. Perform Validations
         if (user.getStatus() != UserStatus.ACTIVE) {
-            throw new IllegalStateException("Your account is not active.");
+            throw new AccountStatusException("Your account is not active.");
         }
         if (!fromAccount.getOwner().equals(user)) {
             throw new SecurityException("Authorization error: You do not own the source account.");
@@ -241,17 +235,15 @@ public class TransactionServiceImpl implements TransactionService {
             throw new IllegalArgumentException("Payment amount must be positive.");
         }
         if (fromAccount.getBalance().compareTo(request.getAmount()) < 0) {
-            throw new IllegalStateException("Insufficient funds.");
+            throw new InsufficientFundsException("Insufficient funds.");
         }
 
-        // 4. Perform debit from user and credit to biller's internal account
+
         BigDecimal newFromBalance = fromAccount.getBalance().subtract(paymentAmount);
         fromAccount.setBalance(newFromBalance);
 
         BigDecimal newToBalance = toBillerAccount.getBalance().add(paymentAmount);
         toBillerAccount.setBalance(newToBalance);
-
-        // 5. Create the transaction log
         Transaction log = new Transaction();
         log.setTransactionType(TransactionType.BILL_PAYMENT);
         log.setStatus(TransactionStatus.COMPLETED);
@@ -266,7 +258,6 @@ public class TransactionServiceImpl implements TransactionService {
         em.persist(log);
     }
 
-    // You will need to add this helper method
     private Biller findBillerById(Long billerId) {
         Biller biller = em.find(Biller.class, billerId);
         if (biller == null) {
@@ -281,17 +272,16 @@ public class TransactionServiceImpl implements TransactionService {
             String username, String accountNumber, LocalDate startDate, LocalDate endDate,
             TransactionType transactionType, int pageNumber, int pageSize) {
 
-        // Security check remains the same
+
         Account account = findAccountByNumber(accountNumber);
         if (account.getOwner() == null || !account.getOwner().getUsername().equals(username)) {
             throw new SecurityException("Authorization error: You do not own this account.");
         }
 
-        // --- Dynamic Query Building ---
         StringBuilder jpql = new StringBuilder(
                 "SELECT t FROM Transaction t WHERE (t.fromAccount.id = :accountId OR t.toAccount.id = :accountId)");
 
-        // Use a Map to hold the query parameters
+
         java.util.Map<String, Object> parameters = new java.util.HashMap<>();
         parameters.put("accountId", account.getId());
 
@@ -310,17 +300,17 @@ public class TransactionServiceImpl implements TransactionService {
 
         jpql.append(" ORDER BY t.transactionDate DESC");
 
-        // --- Create and Execute Query with Pagination ---
+
         TypedQuery<Transaction> query = em.createQuery(jpql.toString(), Transaction.class);
 
-        // Set all the parameters we collected
+
         for (java.util.Map.Entry<String, Object> entry : parameters.entrySet()) {
             query.setParameter(entry.getKey(), entry.getValue());
         }
 
-        // Apply pagination
-        query.setFirstResult((pageNumber - 1) * pageSize); // Calculate the starting row
-        query.setMaxResults(pageSize); // Set the number of rows to retrieve
+
+        query.setFirstResult((pageNumber - 1) * pageSize);
+        query.setMaxResults(pageSize);
 
         return query.getResultList().stream()
                 .map(TransactionDTO::new)
@@ -334,7 +324,6 @@ public class TransactionServiceImpl implements TransactionService {
             throw new IllegalArgumentException("Account with ID '" + accountId + "' not found.");
         }
     }
-    // --- Helper Methods ---
 
     private User findUserByUsername(String username) {
         try {

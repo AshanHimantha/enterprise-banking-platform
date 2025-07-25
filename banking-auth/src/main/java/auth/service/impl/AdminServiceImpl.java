@@ -11,19 +11,18 @@ import enums.KycStatus;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
-import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import service.AccountService;
-import util.LoggingInterceptor;
+import annotation.Audit;
 
 import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Stateless
-@Interceptors(LoggingInterceptor.class)
+@Audit
 public class AdminServiceImpl implements AdminService {
 
     @PersistenceContext(unitName = "bankingPU")
@@ -124,10 +123,26 @@ public class AdminServiceImpl implements AdminService {
         // Force immediate flush to ensure deletion
         em.flush();
 
+
+
+
+
+
+
+
+
+
         // Update the user's KYC status to REJECTED
         user.setKycStatus(KycStatus.REJECTED);
         em.merge(user);
 
+
+
+
+
+
+
+        
         // Force flush to ensure user status is updated
         em.flush();
 

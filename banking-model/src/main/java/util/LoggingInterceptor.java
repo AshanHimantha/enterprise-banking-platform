@@ -1,10 +1,14 @@
 package util;
 
 
+import annotation.Logging;
 import jakarta.interceptor.AroundInvoke;
+import jakarta.interceptor.Interceptor;
 import jakarta.interceptor.InvocationContext;
 import java.io.Serializable;
 
+@Logging
+@Interceptor
 public class LoggingInterceptor implements Serializable {
     @AroundInvoke
     public Object logMethodCall(InvocationContext ctx) throws Exception {

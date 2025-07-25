@@ -1,5 +1,7 @@
 package auth.service.impl;
 
+import annotation.Audit;
+import annotation.Logging;
 import auth.service.AuthService;
 import auth.util.TokenProvider;
 import dto.EmailVerificationDTO;
@@ -29,8 +31,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.time.LocalDateTime;
 
+
 @Stateless
-@Interceptors(LoggingInterceptor.class)
+@Logging
 public class AuthServiceImpl implements AuthService {
 
     @PersistenceContext(unitName = "bankingPU")

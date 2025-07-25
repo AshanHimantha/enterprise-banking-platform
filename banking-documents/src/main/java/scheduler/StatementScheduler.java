@@ -26,9 +26,9 @@ public class StatementScheduler {
     private EntityManager em;
 
     @Inject
-    private JMSContext jmsContext; // Use CDI to inject the JMSContext
+    private JMSContext jmsContext;
 
-    @Resource(lookup = "jms/statementQueue") // Find the queue we created
+    @Resource(lookup = "jms/statementQueue")
     private Queue statementQueue;
 
     // Run at 4 AM on the 1st day of every month.
@@ -36,7 +36,6 @@ public class StatementScheduler {
     public void triggerMonthlyStatements() {
         System.out.println("STATEMENT SCHEDULER: Starting monthly statement generation job...");
 
-        // Determine the date range for last month's statement
         YearMonth lastMonth = YearMonth.now().minusMonths(1);
         LocalDate startDate = lastMonth.atDay(1);
         LocalDate endDate = lastMonth.atEndOfMonth();

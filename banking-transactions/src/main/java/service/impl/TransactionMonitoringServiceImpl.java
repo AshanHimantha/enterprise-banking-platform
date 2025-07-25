@@ -1,5 +1,7 @@
 package service.impl;
 
+import annotation.Audit;
+import annotation.Logging;
 import dto.AdminTransactionDTO;
 import entity.Biller;
 import entity.Transaction;
@@ -20,6 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Audit
+@Logging
 @Stateless
 @RolesAllowed({"ADMIN", "EMPLOYEE"})
 @Interceptors(LoggingInterceptor.class)

@@ -1,5 +1,7 @@
 package scheduler;
 
+import annotation.Audit;
+import annotation.Logging;
 import dto.ScheduleRequestDTO;
 
 import dto.ScheduledPaymentDTO;
@@ -23,6 +25,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Audit
+@Logging
 @Stateless
 @Interceptors(LoggingInterceptor.class)
 public class ScheduledPaymentServiceImpl implements ScheduledPaymentService {

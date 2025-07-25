@@ -25,26 +25,16 @@ public class StatementProcessorMDB implements MessageListener {
     @EJB
     private EmailService emailService;
 
-    // Inject AccountService to find the user's email from the account number
     @EJB
     private AccountService accountService;
 
-    /**
-     * This method is automatically invoked by the container when a new message
-     * arrives in the 'jms/statementQueue'.
-     *
-     * @param message The message from the JMS queue.
-     */
     @Override
     public void onMessage(Message message) {
-        // We expect the message to be a TextMessage.
         if (message instanceof TextMessage) {
             try {
                 TextMessage textMessage = (TextMessage) message;
                 String payload = textMessage.getText();
 
-                // --- 1. Parse the message payload ---
-                // Format: "accountNumber;startDate;endDate"
                 String[] parts = payload.split(";");
                 if (parts.length < 3) {
                     System.err.println("MDB: Received invalid message format. Skipping. Payload: " + payload);
@@ -56,10 +46,8 @@ public class StatementProcessorMDB implements MessageListener {
 
                 System.out.println("MDB: Received job to generate statement for account " + accountNumber);
 
-                // --- 2. Generate the Secure PDF ---
                 ByteArrayOutputStream pdfStream = documentGenerationService.generateAccountStatementPdf(accountNumber, startDate, endDate);
-
-                // --- 3. Email the PDF if it was successfully created ---
+                
                 if (pdfStream != null && pdfStream.size() > 0) {
 
                     // Find the account to get the owner's email address

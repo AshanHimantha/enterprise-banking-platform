@@ -1,5 +1,7 @@
 package service.impl;
 
+import annotation.Audit;
+import annotation.Logging;
 import entity.Account;
 import entity.Transaction;
 import entity.User;
@@ -20,7 +22,8 @@ import util.LoggingInterceptor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
+@Audit
+@Logging
 @Stateless
 @Interceptors(LoggingInterceptor.class)
 public class GiftServiceImpl implements GiftService {
